@@ -1,0 +1,1722 @@
+<title>O2 Wrapped Stories</title>
+<style>
+  :root{
+    --bg-base:#0032d9;
+    --card-bg:#02083f;
+    --ink:#ffffff;
+    --ink-dark:#0019a5;
+    --brand-blue:#0050ff;
+    --track:rgba(255,255,255,.3);
+    --chip:rgba(255,255,255,.22);
+    --font-display:'On Air','Arial Black',sans-serif;
+    --font-body:'On Air',system-ui,sans-serif;
+  }
+
+  @font-face{ font-family:'On Air'; src:url('fonts/OnAir-Light.ttf') format('truetype'); font-weight:300; font-style:normal; font-display:swap; }
+  @font-face{ font-family:'On Air'; src:url('fonts/OnAir-LightItalic.ttf') format('truetype'); font-weight:300; font-style:italic; font-display:swap; }
+  @font-face{ font-family:'On Air'; src:url('fonts/OnAir-Regular.ttf') format('truetype'); font-weight:400 500; font-style:normal; font-display:swap; }
+  @font-face{ font-family:'On Air'; src:url('fonts/OnAir-Italic.ttf') format('truetype'); font-weight:400 500; font-style:italic; font-display:swap; }
+  @font-face{ font-family:'On Air'; src:url('fonts/OnAir-Bold.ttf') format('truetype'); font-weight:700; font-style:normal; font-display:swap; }
+  @font-face{ font-family:'On Air'; src:url('fonts/OnAir-BoldItalic.ttf') format('truetype'); font-weight:700; font-style:italic; font-display:swap; }
+  @font-face{ font-family:'On Air'; src:url('fonts/OnAir-Black.ttf') format('truetype'); font-weight:800 900; font-style:normal; font-display:swap; }
+  @font-face{ font-family:'On Air'; src:url('fonts/OnAir-BlackItalic.ttf') format('truetype'); font-weight:800 900; font-style:italic; font-display:swap; }
+
+  *{box-sizing:border-box;}
+  body{
+    background:#101636;
+    color:var(--ink);
+    font-family:var(--font-body);
+    display:flex;
+    justify-content:center;
+  }
+
+  .stage{
+    width:100%;
+    max-width:900px;
+    padding-block:40px 56px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:20px;
+  }
+
+  .backdrop-glow{
+    position:fixed;
+    inset:0;
+    background:radial-gradient(60% 45% at 50% 0%, rgba(0,60,255,.25), transparent 60%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  .phone{
+    position:relative;
+    z-index:1;
+    width:min(375px, 84vw);
+    aspect-ratio:375/844;
+    border-radius:40px;
+    overflow:hidden;
+    background:var(--bg-base);
+    box-shadow:0 0 0 8px #05082a, 0 0 0 9px rgba(255,255,255,.12), 0 40px 80px -20px rgba(0,10,60,.55);
+    isolation:isolate;
+    touch-action:none;
+    -webkit-user-select:none;
+    user-select:none;
+  }
+
+  .overlay{
+    position:absolute;
+    inset:0;
+    z-index:1;
+    pointer-events:none;
+    background:linear-gradient(180deg,
+      rgba(0,6,70,.6) 0%,
+      rgba(0,6,70,0) 36%,
+      rgba(200,230,255,0) 58%,
+      rgba(200,230,255,.85) 100%);
+  }
+
+  .statusbar{ height:48px; }
+
+  .header{
+    position:relative; z-index:5;
+    height:44px;
+    padding:0 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .header .title{ font-size:13px; font-weight:500; }
+  .close-btn{
+    width:40px; height:40px;
+    border-radius:16px;
+    border:none;
+    background:rgba(240,242,250,.3);
+    color:var(--ink);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    padding:0;
+  }
+  .close-btn svg{ width:24px; height:24px; display:block; }
+
+  .progress{
+    position:relative; z-index:5;
+    display:flex;
+    gap:4px;
+    padding:16px 20px 0;
+  }
+  .progress .seg{
+    flex:1;
+    height:2px;
+    border-radius:2px;
+    background:var(--track);
+    overflow:hidden;
+  }
+  .progress .seg .fill{
+    height:100%;
+    width:0%;
+    background:var(--ink);
+    border-radius:2px;
+  }
+
+  .screen-label{
+    position:relative; z-index:5;
+    padding:14px 20px 0;
+    font-size:13px;
+    font-weight:500;
+    height:20px;
+    opacity:0;
+    transition:opacity .48s ease;
+  }
+  .screen-label.on{ opacity:1; }
+
+  .content{
+    position:absolute;
+    inset:0;
+    top:112px;
+    bottom:0;
+    z-index:4;
+    pointer-events:none;
+  }
+
+  /* ---- intro ---- */
+  .intro-wrap{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+    padding:153px 24px 0;
+    text-align:center;
+  }
+  .intro-headline{
+    font-family:var(--font-display);
+    font-weight:900; font-style:italic;
+    font-size:32px; line-height:1.1;
+    max-width:327px;
+    text-wrap:balance;
+  }
+  .intro-headline .phrase{
+    display:inline-block;
+    margin-right:.28em;
+    opacity:0;
+    transform:translate(var(--tx,0px), var(--ty,0px)) scale(1.9);
+    transition:none;
+  }
+  .intro-headline .phrase.on{
+    opacity:1;
+    transform:translate(0,0) scale(1);
+    transition:opacity .48s ease, transform .62s cubic-bezier(.2,.8,.2,1);
+  }
+  .intro-headline .phrase.measuring{ transform:none !important; transition:none !important; }
+  .intro-sub{
+    margin-top:56px;
+    font-size:15px; font-weight:700; line-height:1.45;
+    max-width:220px;
+    opacity:0; transform:translateY(16px);
+    transition:none;
+  }
+  .intro-sub.on{ opacity:1; transform:translateY(0); transition:opacity .48s ease, transform .62s cubic-bezier(.2,.8,.2,1); }
+
+  /* ---- story ---- */
+  .story-wrap{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; align-items:center;
+    padding:120px 24px 112px;
+    gap:32px;
+  }
+  .block{ display:flex; flex-direction:column; gap:20px; align-items:center; text-align:center; }
+  .block-lead{
+    font-size:15px; font-weight:700; line-height:1.3;
+    opacity:0; transform:translateY(16px);
+    transition:none;
+  }
+  .block-lead.on{ opacity:1; transform:translateY(0); transition:opacity .48s ease, transform .62s cubic-bezier(.2,.8,.2,1); }
+  .value-row{
+    display:flex; align-items:flex-end; justify-content:center;
+    gap:18px; flex-wrap:wrap;
+    opacity:0; transform:translateY(20px);
+    transition:none;
+  }
+  .value-row.on{ opacity:1; transform:translateY(0); transition:opacity .48s ease, transform .62s cubic-bezier(.2,.8,.2,1); }
+  .value{ display:flex; align-items:flex-end; gap:4px; }
+  .value.wrap{ gap:10px; }
+  .value .num{
+    font-family:var(--font-display); font-weight:900; font-style:italic;
+    font-size:64px; line-height:.8; letter-spacing:-.03em;
+    font-variant-numeric:tabular-nums;
+  }
+  .value .unit{
+    font-family:var(--font-display); font-weight:900; font-style:italic;
+    font-size:22px; line-height:.85; max-width:120px; text-align:left;
+    padding-bottom:1px;
+  }
+  /* Two-line unit labels (eg. "spojených hovorů") wrap onto two lines,
+     but their LAST line still sits on the same visual baseline as the
+     number, same as a single-line unit (Figma node 69:1714). A taller
+     line-height means the flex box's own bottom edge lines up a few
+     px above the rendered glyphs, so a small "top" nudge (not padding
+     — padding here would also grow the box and push the sibling
+     number down via align-items:flex-end) closes that gap precisely. */
+  .value.wrap .unit{ line-height:1.14; position:relative; top:2px; }
+  .quote{
+    font-size:14px; font-weight:900; font-style:italic; line-height:1.5;
+    max-width:230px; margin-top:auto; text-align:center;
+    opacity:0; transform:translateY(12px);
+    transition:none;
+  }
+  .quote.on{ opacity:1; transform:translateY(0); transition:opacity .48s ease, transform .62s cubic-bezier(.2,.8,.2,1); }
+
+  /* ---- summary ---- */
+  .summary-wrap{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; align-items:center;
+    padding:24px 24px 0;
+    gap:40px;
+  }
+  .summary-title{
+    font-family:var(--font-display); font-weight:900; font-style:italic;
+    font-size:26px; line-height:1.2; max-width:260px; text-align:center;
+    opacity:0; transform:translateY(14px);
+    transition:none;
+  }
+  .summary-title.on{ opacity:1; transform:translateY(0); transition:opacity .48s ease, transform .62s cubic-bezier(.2,.8,.2,1); }
+  .share-card{
+    width:210px;
+    background:var(--card-bg);
+    border-radius:14px;
+    padding:20px 18px 16px;
+    display:flex; flex-direction:column; gap:24px;
+    box-shadow:0 24px 60px rgba(0,0,40,.4);
+    text-align:left;
+    opacity:0; transform:scale(.92) rotate(-4deg) translateY(24px);
+    transition:none;
+  }
+  .share-card.on{ opacity:1; transform:scale(1) rotate(0) translateY(0); transition:opacity .48s ease, transform .62s cubic-bezier(.2,.8,.2,1); }
+  .card-title{ font-family:var(--font-display); font-weight:900; font-style:italic; font-size:11px; }
+  .card-item{ display:flex; flex-direction:column; gap:6px; opacity:0; transform:translateY(20px); transition:none; }
+  .card-item.on{ opacity:1; transform:translateY(0); transition:opacity .48s ease, transform .62s cubic-bezier(.2,.8,.2,1); }
+  .card-badge{ font-size:9px; font-weight:700; letter-spacing:.06em; }
+  .card-values{ display:flex; align-items:flex-end; gap:8px; }
+  .card-value{ display:flex; align-items:flex-end; gap:5px; }
+  .card-value .num{ font-family:var(--font-display); font-weight:900; font-style:italic; font-size:26px; line-height:1; }
+  .card-value .unit{ font-family:var(--font-display); font-weight:900; font-style:italic; font-size:18px; line-height:1; }
+  .card-label{ font-size:12px; font-weight:700; }
+  .card-logo{ font-family:var(--font-display); font-weight:800; font-size:18px; text-align:right; margin-top:8px; }
+
+  .summary-buttons{
+    position:absolute; left:16px; right:16px; bottom:34px; z-index:5;
+    display:flex; flex-direction:column; gap:8px;
+    opacity:0; transform:translateY(16px); transition:none;
+    pointer-events:auto;
+  }
+  .summary-buttons.on{ opacity:1; transform:translateY(0); transition:opacity .48s ease, transform .62s cubic-bezier(.2,.8,.2,1); }
+  .btn-share{
+    width:100%; height:64px; border-radius:32px; border:none;
+    background:var(--ink); color:var(--brand-blue);
+    font-family:var(--font-body); font-size:16px; font-weight:700; cursor:pointer;
+  }
+  .btn-next{
+    width:100%; height:64px; background:none; border:none;
+    color:var(--ink); font-size:16px; font-weight:700; cursor:pointer; font-family:var(--font-body);
+  }
+
+  .hint{
+    position:absolute; left:0; right:0; bottom:62px; z-index:5;
+    text-align:center; font-size:11px; font-weight:500;
+    opacity:0; transition:opacity .5s ease;
+    pointer-events:none;
+  }
+  .hint.show{ opacity:.75; }
+
+  .home-indicator{
+    position:absolute; left:50%; bottom:10px; z-index:6;
+    width:134px; height:5px; border-radius:3px;
+    background:rgba(255,255,255,.9);
+    transform:translateX(-50%);
+  }
+
+  .tap-zone{
+    position:absolute; top:110px; bottom:0; z-index:6;
+    background:transparent; border:none; padding:0; cursor:pointer;
+  }
+  .tap-zone.left{ left:0; width:40%; }
+  .tap-zone.right{ right:0; width:60%; }
+
+  .no-transition, .no-transition *{ transition:none !important; }
+
+  .variant-note{
+    max-width:375px; text-align:center; font-size:13px; line-height:1.6; color:#5f6787; padding-inline:8px;
+  }
+  .variant-note b{ color:#1c2340; }
+
+  /* ---- CSV / Excel data panel ---- */
+  .data-toggle{
+    font-family:var(--font-body);
+    font-size:13px; font-weight:700;
+    color:#5f6787;
+    background:#fff;
+    border:1px solid #dee0ec;
+    border-radius:99px;
+    padding:8px 16px;
+    cursor:pointer;
+  }
+  .data-toggle:hover{ color:#0050ff; border-color:#bcd0ff; }
+  .quick-row{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+  .quick-fields{ display:flex; flex-wrap:wrap; gap:8px; }
+  .quick-fields select{
+    flex:1 1 220px; min-width:0;
+    font-family:var(--font-body); font-size:12.5px; color:#1c2340;
+    padding:8px 10px; border-radius:8px; border:1px solid #dee0ec; background:#f8f9fd;
+  }
+  .quick-fields input[type=number]{
+    width:90px;
+    font-family:var(--font-body); font-size:12.5px; color:#1c2340;
+    padding:8px 10px; border-radius:8px; border:1px solid #dee0ec; background:#f8f9fd;
+  }
+  .data-panel{
+    display:none;
+    width:min(420px, 92vw);
+    background:#fff;
+    border:1px solid #dee0ec;
+    border-radius:16px;
+    padding:16px;
+    box-shadow:0 20px 40px -20px rgba(20,30,70,.25);
+  }
+  .data-panel.open{ display:block; }
+  .data-panel h3{ margin:0 0 4px; font-size:14px; color:#1c2340; }
+  .data-panel p{ margin:0 0 12px; font-size:12px; line-height:1.5; color:#5f6787; }
+  .data-panel textarea{
+    width:100%; height:220px; resize:vertical;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:11.5px; line-height:1.5;
+    padding:10px; border-radius:10px; border:1px solid #dee0ec;
+    color:#1c2340; background:#f8f9fd;
+  }
+  .data-panel .row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; align-items:center; }
+  .data-panel button, .data-panel .file-btn{
+    font-family:var(--font-body); font-size:12.5px; font-weight:700;
+    padding:8px 12px; border-radius:8px; border:1px solid #dee0ec;
+    background:#f0f2fa; color:#1c2340; cursor:pointer;
+  }
+  .data-panel .file-btn{ display:inline-block; }
+  .data-panel button.primary{ background:#0050ff; border-color:#0050ff; color:#fff; }
+  .data-panel input[type=file]{ display:none; }
+  .data-panel .status{ margin-top:8px; font-size:12px; min-height:16px; }
+  .data-panel .status.err{ color:#c0362c; }
+  .data-panel .status.ok{ color:#0a8a3f; }
+
+  @media (prefers-reduced-motion: reduce){
+    .phrase, .intro-sub, .block-lead, .value-row, .quote, .summary-title, .share-card, .card-item, .summary-buttons{
+      transition-duration:.2s !important;
+      transform:none !important;
+    }
+  }
+
+  /* ---- QR panel ---- */
+  .qr-canvas-wrap{
+    display:flex; justify-content:center; padding:12px 0 4px;
+  }
+  .qr-canvas-wrap canvas{
+    width:200px; height:200px; image-rendering:pixelated;
+    border-radius:8px; border:1px solid #dee0ec;
+  }
+  .qr-fields{ display:flex; flex-wrap:wrap; gap:8px; }
+  .qr-fields input[type=text]{
+    flex:1 1 220px; min-width:0;
+    font-family:var(--font-body); font-size:12.5px; color:#1c2340;
+    padding:8px 10px; border-radius:8px; border:1px solid #dee0ec; background:#f8f9fd;
+  }
+  .qr-caption{ text-align:center; font-size:11.5px; color:#5f6787; margin-top:4px; }
+
+  /* ---- Mobile: drop the desktop "phone mockup" chrome (bezel, fake
+     status bar, fake home indicator, dev-tool panels) and let the page
+     fill the real device viewport, close to a native iOS app. This is
+     a plain responsive breakpoint (not UA sniffing), so narrowing a
+     desktop window past it shows the same stripped-down layout. ---- */
+  @media (max-width: 480px){
+    body{ display:block; }
+    .stage{ width:100%; max-width:none; padding-block:0; gap:0; }
+    .backdrop-glow{ display:none; }
+    .phone{
+      width:100vw; max-width:100vw; height:100dvh; aspect-ratio:auto;
+      border-radius:0; box-shadow:none;
+    }
+    .statusbar{ height:max(env(safe-area-inset-top,0px), 24px); }
+    .content{ top:calc(64px + max(env(safe-area-inset-top,0px), 24px)); }
+    .tap-zone{ top:calc(62px + max(env(safe-area-inset-top,0px), 24px)); }
+    .home-indicator{ display:none; }
+    .variant-note, .quick-row, #quickPanel, #dataPanel, #qrPanel{ display:none; }
+  }
+</style>
+
+<div class="stage">
+  <div class="backdrop-glow"></div>
+
+  <div class="phone" id="phone">
+    <div class="overlay"></div>
+    <div class="statusbar"></div>
+
+    <div class="header">
+      <span class="title" id="mainTitle">Váš rok s O2</span>
+      <button class="close-btn" id="closeBtn" aria-label="Zavřít"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+    </div>
+
+    <div class="progress" id="progress"></div>
+    <div class="screen-label" id="screenLabel"></div>
+
+    <div class="content" id="content"></div>
+
+    <div class="hint" id="hint">Klepnutím pokračujete</div>
+    <div class="home-indicator"></div>
+
+    <button class="tap-zone left" id="tapLeft" aria-label="Předchozí obrazovka"></button>
+    <button class="tap-zone right" id="tapRight" aria-label="Další obrazovka"></button>
+  </div>
+
+  <p class="variant-note">Sloučená verze: datový model, obrazovky a časování podle handoffu z Claude Design (<b>O2 Wrapped Final</b>), intro fráze používají náš FLIP efekt (zvětšit uprostřed → zmenšit na místo ve větě). Klepnutím doprava animaci nejdřív doženeš do konce, dalším klepnutím jdeš na další obrazovku. Klepnutí doleva vrátí na předchozí obrazovku od začátku, × resetuje na intro.</p>
+
+  <div class="quick-row">
+    <button type="button" class="data-toggle" id="quickToggle">Rychlá úprava hodnoty</button>
+    <button type="button" class="data-toggle" id="dataToggle">Upravit data (CSV / Excel)</button>
+    <button type="button" class="data-toggle" id="qrToggle">Zobrazit QR kód</button>
+  </div>
+
+  <div class="data-panel" id="qrPanel">
+    <h3>Otevřít na telefonu</h3>
+    <p>Naskenuj QR kód mobilem — na telefonu se otevře responzivní verze bez mockup rámečku (bez falešného status baru a home indikátoru), na šířku obrazovky.</p>
+    <div class="qr-fields">
+      <input type="text" id="qrUrlInput" spellcheck="false">
+      <button type="button" id="qrRefreshBtn" class="primary">Generovat</button>
+    </div>
+    <div class="qr-canvas-wrap"><canvas id="qrCanvas" width="200" height="200"></canvas></div>
+    <div class="qr-caption" id="qrCaption"></div>
+  </div>
+
+  <div class="data-panel" id="quickPanel">
+    <h3>Rychlá úprava hodnoty</h3>
+    <p>Vyber statistiku a zadej novou hodnotu — maketa se rovnou přepne na danou obrazovku a ukáže výsledek.</p>
+    <div class="quick-fields">
+      <select id="quickSelect"></select>
+      <input type="number" id="quickInput" inputmode="numeric" min="0" step="1">
+      <button type="button" id="quickApplyBtn" class="primary">Použít</button>
+    </div>
+    <div class="status" id="quickStatus"></div>
+  </div>
+
+  <div class="data-panel" id="dataPanel">
+    <h3>Data ze souboru</h3>
+    <p>Každý řádek je jedna hodnota (cesta k poli → hodnota). Stejná tabulka se dá otevřít a upravit v Excelu / Google Sheets jako běžný CSV soubor — počet frází, storek, hodnot i položek na summary je libovolný, prostě přidej nebo uber řádky se stejným prefixem (např. <code>stories[3].…</code> pro čtvrtou story obrazovku).</p>
+    <textarea id="dataTextarea" spellcheck="false"></textarea>
+    <div class="row">
+      <button type="button" id="applyBtn" class="primary">Použít data</button>
+      <button type="button" id="downloadBtn">Stáhnout jako CSV</button>
+      <label class="file-btn">Nahrát CSV soubor<input type="file" id="uploadInput" accept=".csv,text/csv"></label>
+      <button type="button" id="resetDataBtn">Výchozí data</button>
+    </div>
+    <div class="status" id="dataStatus"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  // ---------------------------------------------------------------
+  // DATA LAYER — mirrors wrapped-data.json from the Claude Design
+  // handoff 1:1 (same shape), so this stays a drop-in with whatever
+  // the design/backend team ships.
+  // ---------------------------------------------------------------
+  var DEFAULT_DATA = {
+    title: 'Váš rok s O2',
+    intro: {
+      phrases: ['Podívejme se,', 'jak jste letos', 'byli s O2', 've spojení!'],
+      sub: 'Svůj mobil jsi používali celý rok 2026.'
+    },
+    stories: [
+      {
+        label: 'Hovory od začátku roku 2026',
+        blocks: [
+          { lead: 'Strávili jste s námi na telefonu', values: [{ n: 32, unit: 'h' }, { n: 40, unit: 'min' }] },
+          { lead: 'Uskutečnili jste', values: [{ n: 412, unit: 'spojených hovorů' }] }
+        ],
+        quote: '„To vás řadí mezi top 16% volajících u O2“'
+      },
+      {
+        label: 'Hovory za posledních 6 měsíců',
+        blocks: [
+          { lead: 'Za poslední půlrok jste volal na', values: [{ n: 272, unit: 'telefonních čísel' }] },
+          { lead: 'Váš nejdelší hovor trval', values: [{ n: 60, unit: 'min' }] }
+        ]
+      },
+      {
+        label: 'Data za tento rok',
+        blocks: [
+          { lead: 'Letos jste využili', values: [{ n: 480, unit: 'GB dat' }] }
+        ],
+        quote: '„To vás řadí mezi top 33% datařů u O2“'
+      }
+    ],
+    summary: {
+      title: 'Sdílejte váš rok s O2 s ostatními',
+      cardTitle: 'Můj rok 2026 s O2',
+      items: [
+        { badge: 'GALAKTICKÝ MLUVČÍ', values: [{ n: 32, unit: 'h' }, { n: 40, unit: 'min' }], label: 'volání' },
+        { badge: 'ONLINE SPRINTER', values: [{ n: 146, unit: 'GB' }], label: 'dat' }
+      ],
+      share: 'Sdílet',
+      next: 'Pokračovat',
+      hint: 'Klepnutím pokračujete'
+    }
+  };
+
+  // DATA is the live, editable copy the screens render from; the
+  // CSV/Excel panel further down replaces it wholesale on "Použít".
+  var DATA = JSON.parse(JSON.stringify(DEFAULT_DATA));
+  var SCREENS = [];
+
+  function buildScreens(){
+    SCREENS = [{ type: 'intro' }]
+      .concat(DATA.stories.map(function(s){ return Object.assign({ type: 'story' }, s); }))
+      .concat([Object.assign({ type: 'summary' }, DATA.summary)]);
+    buildProgress();
+  }
+  // Called once DOM refs (progressEl etc.) exist — see boot section below.
+
+  // ---------------------------------------------------------------
+  // CSV / Excel data layer — every leaf value in DATA gets one row
+  // as "path,value" (e.g. stories[0].blocks[0].values[0].n,32). This
+  // is the flattest, most Excel-native shape for a tree with
+  // variable-length lists (any number of phrases/stories/blocks/
+  // values/summary items): adding a phrase or a whole story screen
+  // is just adding rows with a new index, no fixed columns to run
+  // out of. Round-trips exactly through flattenToRows/rowsToData.
+  // ---------------------------------------------------------------
+  function flattenToRows(obj, prefix, rows){
+    if (obj === null || obj === undefined){ rows.push([prefix, '']); return; }
+    if (Array.isArray(obj)){
+      obj.forEach(function(item, i){ flattenToRows(item, prefix + '[' + i + ']', rows); });
+    } else if (typeof obj === 'object'){
+      Object.keys(obj).forEach(function(k){ flattenToRows(obj[k], prefix ? prefix + '.' + k : k, rows); });
+    } else {
+      rows.push([prefix, String(obj)]);
+    }
+  }
+
+  function dataToCsv(data){
+    var rows = [];
+    flattenToRows(data, '', rows);
+    var lines = ['path,value'];
+    rows.forEach(function(r){ lines.push(csvField(r[0]) + ',' + csvField(r[1])); });
+    return lines.join('\n');
+  }
+
+  function csvField(v){
+    v = String(v);
+    if (/[",\n]/.test(v)) return '"' + v.replace(/"/g, '""') + '"';
+    return v;
+  }
+
+  // Minimal RFC4180-ish CSV parser: handles quoted fields with
+  // embedded commas/newlines/escaped quotes, which is all Excel or
+  // Google Sheets will ever export for this two-column table.
+  function parseCsv(text){
+    var rows = [];
+    var row = [];
+    var field = '';
+    var inQuotes = false;
+    for (var i = 0; i < text.length; i++){
+      var c = text[i];
+      if (inQuotes){
+        if (c === '"'){
+          if (text[i + 1] === '"'){ field += '"'; i++; }
+          else { inQuotes = false; }
+        } else field += c;
+      } else if (c === '"'){
+        inQuotes = true;
+      } else if (c === ','){
+        row.push(field); field = '';
+      } else if (c === '\n' || c === '\r'){
+        if (c === '\r' && text[i + 1] === '\n') i++;
+        row.push(field); field = '';
+        rows.push(row); row = [];
+      } else {
+        field += c;
+      }
+    }
+    if (field.length || row.length){ row.push(field); rows.push(row); }
+    return rows.filter(function(r){ return r.length > 1 || r[0] !== ''; });
+  }
+
+  // "stories[0].blocks[0].values[0].n" -> ['stories','0','blocks','0','values','0','n']
+  function tokenizePath(path){
+    var tokens = [];
+    path.replace(/([^.\[\]]+)|\[(\d+)\]/g, function(m, key, idx){
+      tokens.push(idx !== undefined ? Number(idx) : key);
+    });
+    return tokens;
+  }
+
+  function setPath(root, path, value){
+    var tokens = tokenizePath(path);
+    if (!tokens.length) return;
+    var node = root;
+    for (var i = 0; i < tokens.length - 1; i++){
+      var key = tokens[i];
+      var nextKey = tokens[i + 1];
+      var wantArray = typeof nextKey === 'number';
+      if (node[key] === undefined) node[key] = wantArray ? [] : {};
+      node = node[key];
+    }
+    var last = tokens[tokens.length - 1];
+    var coerced = (last === 'n') ? Number(value) : value;
+    node[last] = coerced;
+  }
+
+  function rowsToData(rows){
+    var root = {};
+    rows.forEach(function(r){
+      if (!r[0]) return;
+      setPath(root, r[0], r[1] === undefined ? '' : r[1]);
+    });
+    return root;
+  }
+
+  // ---------------------------------------------------------------
+  // Timeline constants — durations from the Claude Design handoff
+  // README, except the intro phrase choreography, which keeps our
+  // FLIP "big & centred, then shrink into place" treatment instead
+  // of their slide-across-then-compose variant.
+  // ---------------------------------------------------------------
+  var PHRASE_BASE_DELAY = 150;
+  var PHRASE_GAP = 620;         // ms between phrases settling
+  var PHRASE_SETTLE = 620;      // matches the shared transform transition length
+  var BLOCK_GAP = 1500;
+  var LEAD_TO_VALUE = 350;
+  var COUNT_UP_MS = 900;
+  var CARD_ITEM_GAP = 350;
+
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var phoneEl = document.getElementById('phone');
+  var progressEl = document.getElementById('progress');
+  var contentEl = document.getElementById('content');
+  var screenLabelEl = document.getElementById('screenLabel');
+  var hintEl = document.getElementById('hint');
+  var closeBtn = document.getElementById('closeBtn');
+  var tapLeft = document.getElementById('tapLeft');
+  var tapRight = document.getElementById('tapRight');
+
+  var state = { index: 0, screenStart: 0, dur: 1200, noHint: false };
+  document.getElementById('mainTitle').textContent = DATA.title;
+
+  // Bumped on every renderScreen() call; a timer scheduled for an
+  // older screen checks this before touching shared elements (like
+  // the hint), so navigating away early (via skip or a fast tap)
+  // can never let a stale, late-firing timer from an abandoned
+  // screen re-show the hint (or anything else shared) later.
+  var renderGen = 0;
+
+  function buildProgress(){
+    progressEl.innerHTML = '';
+    SCREENS.forEach(function(){
+      var seg = document.createElement('div');
+      seg.className = 'seg';
+      var fill = document.createElement('div');
+      fill.className = 'fill';
+      seg.appendChild(fill);
+      progressEl.appendChild(seg);
+    });
+  }
+
+  function updateProgress(t){
+    var segs = progressEl.querySelectorAll('.seg .fill');
+    segs.forEach(function(fill, i){
+      if (i < state.index) fill.style.width = '100%';
+      else if (i === state.index) fill.style.width = Math.max(0, Math.min(1, t / state.dur)) * 100 + '%';
+      else fill.style.width = '0%';
+    });
+  }
+
+  function formatNum(n){ return n.toLocaleString('cs-CZ'); }
+
+  function easeOutCubic(p){ return 1 - Math.pow(1 - p, 3); }
+
+  function makeValueRow(values){
+    var row = document.createElement('div');
+    row.className = 'value-row';
+    values.forEach(function(v){
+      var val = document.createElement('div');
+      val.className = 'value';
+      var num = document.createElement('span');
+      num.className = 'num';
+      num.textContent = '0';
+      var unit = document.createElement('span');
+      unit.className = 'unit';
+      unit.textContent = v.unit;
+      val.appendChild(num);
+      val.appendChild(unit);
+      row.appendChild(val);
+      row._nums = row._nums || [];
+      row._nums.push({ el: num, target: v.n });
+    });
+    return row;
+  }
+
+  // A unit label that wraps to two lines (eg. "spojených hovorů") needs
+  // a wider gap and different vertical alignment than a short, single-
+  // line unit (eg. "h", "min") — see the ".value.wrap" rules above.
+  // Data is editable via the CSV panel, so this is detected by actually
+  // measuring the rendered label rather than guessing from string
+  // length; call only once the row is attached to the document.
+  var UNIT_SINGLE_LINE_H = 22 * .85; // font-size * single-line line-height
+  function markWrappedUnits(row){
+    row.querySelectorAll('.value').forEach(function(val){
+      var unit = val.querySelector('.unit');
+      if (!unit) return;
+      if (unit.getBoundingClientRect().height > UNIT_SINGLE_LINE_H * 1.4){
+        val.classList.add('wrap');
+      }
+    });
+  }
+
+  function animateCountUp(row, delayMs){
+    var duration = reduceMotion ? 0 : COUNT_UP_MS;
+    var start = null;
+    function paint(p){
+      var eased = easeOutCubic(p);
+      row._nums.forEach(function(entry){
+        entry.el.textContent = formatNum(Math.round(entry.target * eased));
+      });
+    }
+    setTimeout(function(){
+      if (duration === 0){ paint(1); return; }
+      function frame(ts){
+        if (start === null) start = ts;
+        var p = Math.min(1, (ts - start) / duration);
+        paint(p);
+        if (p < 1) requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+    }, delayMs);
+  }
+
+  // ---------------------------------------------------------------
+  // Screen builders — each returns { dur } (ms for the full entrance)
+  // and wires up a schedule of setTimeout calls that flip elements
+  // from their pending inline style to the ".on" class, which is
+  // where the CSS transition actually happens. This mirrors the
+  // handoff's "pure function of t decides state" model, just driven
+  // by scheduled class flips instead of a per-frame diff.
+  // ---------------------------------------------------------------
+  function buildIntro(screen){
+    var wrap = document.createElement('div');
+    wrap.className = 'intro-wrap';
+    var h = document.createElement('div');
+    h.className = 'intro-headline';
+    var spans = DATA.intro.phrases.map(function(text){
+      var span = document.createElement('span');
+      span.className = 'phrase measuring';
+      span.textContent = text;
+      h.appendChild(span);
+      return span;
+    });
+    wrap.appendChild(h);
+    var sub = document.createElement('div');
+    sub.className = 'intro-sub';
+    sub.textContent = DATA.intro.sub;
+    wrap.appendChild(sub);
+    contentEl.appendChild(wrap);
+
+    // FLIP measurement: each phrase already sits in its true final
+    // slot (multi-line paragraph); we read that position, then set
+    // the "from" transform to fly in from dead-centre of the phone.
+    var phoneRect = phoneEl.getBoundingClientRect();
+    var cx = phoneRect.left + phoneRect.width / 2;
+    var cy = phoneRect.top + phoneRect.height / 2;
+    var lastSettleAt = 0;
+    spans.forEach(function(span, i){
+      var r = span.getBoundingClientRect();
+      var dx = Math.round(cx - (r.left + r.width / 2));
+      var dy = Math.round(cy - (r.top + r.height / 2));
+      span.style.setProperty('--tx', dx + 'px');
+      span.style.setProperty('--ty', dy + 'px');
+      span.classList.remove('measuring');
+      var delayMs = PHRASE_BASE_DELAY + i * PHRASE_GAP;
+      setTimeout(function(){ span.classList.add('on'); }, reduceMotion ? 0 : delayMs);
+      lastSettleAt = delayMs + PHRASE_SETTLE;
+    });
+
+    var subDelay = lastSettleAt + 250;
+    setTimeout(function(){ sub.classList.add('on'); }, reduceMotion ? 150 : subDelay);
+
+    return { dur: (reduceMotion ? 150 : subDelay) + 480 + 200 };
+  }
+
+  function buildStory(screen){
+    var wrap = document.createElement('div');
+    wrap.className = 'story-wrap';
+    contentEl.appendChild(wrap);
+
+    var lastLeadAt = 0;
+    screen.blocks.forEach(function(block, i){
+      var b = document.createElement('div');
+      b.className = 'block';
+      var lead = document.createElement('div');
+      lead.className = 'block-lead';
+      lead.textContent = block.lead;
+      var row = makeValueRow(block.values);
+      b.appendChild(lead);
+      b.appendChild(row);
+      wrap.appendChild(b);
+      markWrappedUnits(row);
+
+      var leadAt = 200 + i * BLOCK_GAP;
+      var valAt = leadAt + LEAD_TO_VALUE;
+      setTimeout(function(){ lead.classList.add('on'); }, reduceMotion ? 0 : leadAt);
+      setTimeout(function(){ row.classList.add('on'); }, reduceMotion ? 0 : valAt);
+      animateCountUp(row, reduceMotion ? 0 : valAt);
+      lastLeadAt = leadAt;
+    });
+
+    var blocksEndAt = 200 + screen.blocks.length * BLOCK_GAP;
+    var hintAt = blocksEndAt + 100;
+
+    if (screen.quote){
+      var q = document.createElement('div');
+      q.className = 'quote';
+      q.textContent = screen.quote;
+      wrap.appendChild(q);
+      setTimeout(function(){ q.classList.add('on'); }, reduceMotion ? 0 : blocksEndAt);
+      hintAt = blocksEndAt + 700;
+    }
+
+    return { dur: (reduceMotion ? 0 : hintAt) + 400 };
+  }
+
+  function buildSummary(screen){
+    var wrap = document.createElement('div');
+    wrap.className = 'summary-wrap';
+
+    var title = document.createElement('div');
+    title.className = 'summary-title';
+    title.textContent = screen.title;
+    wrap.appendChild(title);
+    setTimeout(function(){ title.classList.add('on'); }, reduceMotion ? 0 : 100);
+
+    var card = document.createElement('div');
+    card.className = 'share-card';
+    var cardTitle = document.createElement('div');
+    cardTitle.className = 'card-title';
+    cardTitle.textContent = screen.cardTitle;
+    card.appendChild(cardTitle);
+
+    screen.items.forEach(function(item, i){
+      var it = document.createElement('div');
+      it.className = 'card-item';
+      var badge = document.createElement('div');
+      badge.className = 'card-badge';
+      badge.textContent = item.badge;
+      var values = document.createElement('div');
+      values.className = 'card-values';
+      item.values.forEach(function(v){
+        var cv = document.createElement('div');
+        cv.className = 'card-value';
+        var num = document.createElement('span');
+        num.className = 'num';
+        num.textContent = '0';
+        var unit = document.createElement('span');
+        unit.className = 'unit';
+        unit.textContent = v.unit;
+        cv.appendChild(num);
+        cv.appendChild(unit);
+        values.appendChild(cv);
+        values._nums = values._nums || [];
+        values._nums.push({ el: num, target: v.n });
+      });
+      var label = document.createElement('div');
+      label.className = 'card-label';
+      label.textContent = item.label;
+      it.appendChild(badge);
+      it.appendChild(values);
+      it.appendChild(label);
+      card.appendChild(it);
+
+      var itemAt = 700 + i * CARD_ITEM_GAP;
+      setTimeout(function(){ it.classList.add('on'); }, reduceMotion ? 0 : itemAt);
+      animateCountUp(values, reduceMotion ? 0 : itemAt);
+    });
+
+    var logo = document.createElement('div');
+    logo.className = 'card-logo';
+    logo.textContent = 'O2';
+    card.appendChild(logo);
+    wrap.appendChild(card);
+    setTimeout(function(){ card.classList.add('on'); }, reduceMotion ? 0 : 350);
+
+    contentEl.appendChild(wrap);
+
+    var buttons = document.createElement('div');
+    buttons.className = 'summary-buttons';
+    var share = document.createElement('button');
+    share.className = 'btn-share';
+    share.textContent = screen.share;
+    share.type = 'button';
+    var next = document.createElement('button');
+    next.className = 'btn-next';
+    next.textContent = screen.next;
+    next.type = 'button';
+    next.addEventListener('click', function(e){ e.stopPropagation(); goTo(0); });
+    buttons.appendChild(share);
+    buttons.appendChild(next);
+    contentEl.appendChild(buttons);
+
+    var btnAt = 700 + screen.items.length * CARD_ITEM_GAP + 300;
+    setTimeout(function(){ buttons.classList.add('on'); }, reduceMotion ? 0 : btnAt);
+
+    return { dur: (reduceMotion ? 0 : btnAt) + 400, noHint: true };
+  }
+
+  function renderScreen(i){
+    var gen = ++renderGen;
+    contentEl.innerHTML = '';
+    var screen = SCREENS[i];
+
+    screenLabelEl.classList.remove('on');
+    screenLabelEl.textContent = screen.label || '';
+    if (screen.label){
+      setTimeout(function(){ if (gen === renderGen) screenLabelEl.classList.add('on'); }, 100);
+    }
+
+    hintEl.classList.remove('show');
+    hintEl.textContent = screen.hint || 'Klepnutím pokračujete';
+
+    var result;
+    if (screen.type === 'intro') result = buildIntro(screen);
+    else if (screen.type === 'story') result = buildStory(screen);
+    else result = buildSummary(screen);
+
+    state.dur = result.dur;
+    state.noHint = !!result.noHint;
+
+    if (!result.noHint){
+      setTimeout(function(){ if (gen === renderGen) hintEl.classList.add('show'); }, result.dur);
+    }
+  }
+
+  // ---------------------------------------------------------------
+  // Navigation — tap/click/arrow-key only, never a timer that moves
+  // the story on by itself. First tap-right while the entrance is
+  // still playing just fast-forwards it to its resting state (skip),
+  // per the handoff spec; only a second tap-right actually advances.
+  // Tap-left always restarts the previous screen from t=0. × resets
+  // to intro. This still fully respects "never guess a reading time
+  // and never auto-advance" — every screen change is a real, explicit
+  // action from the person.
+  // ---------------------------------------------------------------
+  function goTo(i, opts){
+    opts = opts || {};
+    if (i < 0) i = 0;
+    if (i >= SCREENS.length) i = 0; // loop back to intro after summary
+    state.index = i;
+    state.screenStart = performance.now();
+    renderScreen(i);
+  }
+
+  function skipToEnd(){
+    phoneEl.classList.add('no-transition');
+    document.querySelectorAll('#content .phrase, #content .intro-sub, #content .block-lead, #content .value-row, #content .quote, #content .summary-title, #content .share-card, #content .card-item, #content .summary-buttons')
+      .forEach(function(el){ el.classList.add('on'); });
+    document.querySelectorAll('.value-row, .card-values').forEach(function(row){
+      if (!row._nums) return;
+      row._nums.forEach(function(entry){ entry.el.textContent = formatNum(entry.target); });
+    });
+    if (!state.noHint) hintEl.classList.add('show');
+    state.screenStart = performance.now() - state.dur;
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){ phoneEl.classList.remove('no-transition'); });
+    });
+  }
+
+  tapRight.addEventListener('click', function(){
+    var t = performance.now() - state.screenStart;
+    if (t < state.dur) skipToEnd();
+    else goTo(state.index + 1);
+  });
+  tapLeft.addEventListener('click', function(){ goTo(Math.max(0, state.index - 1)); });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowRight') tapRight.click();
+    if (e.key === 'ArrowLeft') tapLeft.click();
+  });
+  closeBtn.addEventListener('click', function(){ goTo(0); });
+
+  // ---------------------------------------------------------------
+  // Frame loop — only drives the progress bar fill (which really is
+  // continuous, t/dur every frame, per the spec). Everything else is
+  // discrete state flips via setTimeout + CSS transitions above.
+  // ---------------------------------------------------------------
+  function loop(){
+    var t = performance.now() - state.screenStart;
+    updateProgress(t);
+    requestAnimationFrame(loop);
+  }
+
+  buildScreens();
+  requestAnimationFrame(loop);
+
+  // ---------------------------------------------------------------
+  // CSV / Excel panel wiring — plain client-side textarea + file
+  // input, no server involved. "Použít" re-parses the textarea,
+  // "Nahrát CSV soubor" reads a local .csv into the textarea first
+  // (so it's still reviewable/editable before applying), "Stáhnout
+  // jako CSV" exports the live DATA so it can be opened and edited
+  // in Excel/Sheets and re-uploaded.
+  // ---------------------------------------------------------------
+  var dataToggle = document.getElementById('dataToggle');
+  var dataPanel = document.getElementById('dataPanel');
+  var dataTextarea = document.getElementById('dataTextarea');
+  var applyBtn = document.getElementById('applyBtn');
+  var downloadBtn = document.getElementById('downloadBtn');
+  var uploadInput = document.getElementById('uploadInput');
+  var resetDataBtn = document.getElementById('resetDataBtn');
+  var dataStatus = document.getElementById('dataStatus');
+
+  function setStatus(msg, kind){
+    dataStatus.textContent = msg;
+    dataStatus.className = 'status' + (kind ? ' ' + kind : '');
+  }
+
+  dataToggle.addEventListener('click', function(){
+    var open = dataPanel.classList.toggle('open');
+    if (open) dataTextarea.value = dataToCsv(DATA);
+  });
+
+  applyBtn.addEventListener('click', function(){
+    try {
+      var rows = parseCsv(dataTextarea.value).slice(1); // drop header row
+      if (!rows.length) throw new Error('Tabulka je prázdná.');
+      var next = rowsToData(rows);
+      if (!next.intro || !next.stories || !next.summary){
+        throw new Error('Chybí intro, stories nebo summary — zkontroluj cesty (path) na řádcích.');
+      }
+      if (!Array.isArray(next.intro.phrases) || !next.intro.phrases.length){
+        throw new Error('intro.phrases musí mít aspoň jednu frázi.');
+      }
+      if (!Array.isArray(next.stories) || !next.stories.length){
+        throw new Error('stories musí mít aspoň jednu obrazovku.');
+      }
+      DATA = next;
+      buildScreens();
+      goTo(0);
+      setStatus('Data použita — obrazovky se přehrávají od intra.', 'ok');
+    } catch (err) {
+      setStatus('Chyba v datech: ' + err.message, 'err');
+    }
+  });
+
+  downloadBtn.addEventListener('click', function(){
+    (window.claude && window.claude.use ? window.claude.use('downloads') : Promise.resolve(null))
+      .then(function(downloads){
+        if (!downloads){ setStatus('Stahování není v tomto zobrazení dostupné — zkopíruj text z pole ručně.', 'err'); return; }
+        return downloads.save({ filename: 'o2-wrapped-data.csv', data: dataToCsv(DATA) });
+      })
+      .then(function(res){ if (res) setStatus('Soubor uložen.', 'ok'); })
+      .catch(function(){ setStatus('Uložení souboru bylo zrušeno nebo se nezdařilo.', 'err'); });
+  });
+
+  uploadInput.addEventListener('change', function(){
+    var file = uploadInput.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(){
+      dataTextarea.value = String(reader.result);
+      dataPanel.classList.add('open');
+      setStatus('Soubor "' + file.name + '" načten do pole — zkontroluj a klikni na "Použít data".', 'ok');
+    };
+    reader.onerror = function(){ setStatus('Soubor se nepodařilo přečíst.', 'err'); };
+    reader.readAsText(file, 'utf-8');
+    uploadInput.value = '';
+  });
+
+  resetDataBtn.addEventListener('click', function(){
+    DATA = JSON.parse(JSON.stringify(DEFAULT_DATA));
+    buildScreens();
+    goTo(0);
+    dataTextarea.value = dataToCsv(DATA);
+    setStatus('Obnovena výchozí data.', 'ok');
+  });
+
+  // ---------------------------------------------------------------
+  // Quick value panel — a lighter alternative to the full CSV table:
+  // pick one numeric stat from a dropdown, type a new number, hit
+  // "Použít". It writes straight into DATA at that stat's own path
+  // (reusing setPath from the CSV layer, so both stay in sync), then
+  // jumps the mockup to the screen that stat lives on and immediately
+  // fast-forwards it to its resting state, so the new value is visible
+  // at once instead of having to wait through the full entrance timing.
+  // ---------------------------------------------------------------
+  var quickToggle = document.getElementById('quickToggle');
+  var quickPanel = document.getElementById('quickPanel');
+  var quickSelect = document.getElementById('quickSelect');
+  var quickInput = document.getElementById('quickInput');
+  var quickApplyBtn = document.getElementById('quickApplyBtn');
+  var quickStatus = document.getElementById('quickStatus');
+  var qrToggle = document.getElementById('qrToggle');
+  var qrPanel = document.getElementById('qrPanel');
+  var qrUrlInput = document.getElementById('qrUrlInput');
+  var qrRefreshBtn = document.getElementById('qrRefreshBtn');
+  var qrCanvas = document.getElementById('qrCanvas');
+  var qrCaption = document.getElementById('qrCaption');
+
+  function setQuickStatus(msg, kind){
+    quickStatus.textContent = msg;
+    quickStatus.className = 'status' + (kind ? ' ' + kind : '');
+  }
+
+  // Walks the live DATA (not DEFAULT_DATA, so it always reflects
+  // whatever the CSV panel or a previous quick edit last applied) and
+  // returns one entry per numeric "n" leaf, with a path setPath()
+  // understands, a human label, and which screen index shows it.
+  function collectNumericFields(){
+    var fields = [];
+    DATA.stories.forEach(function(story, si){
+      var screenIndex = si + 1; // screen 0 is the intro
+      story.blocks.forEach(function(block, bi){
+        block.values.forEach(function(v, vi){
+          fields.push({
+            path: 'stories[' + si + '].blocks[' + bi + '].values[' + vi + '].n',
+            label: 'Story ' + screenIndex + ': ' + block.lead + ' (' + v.unit + ')',
+            screenIndex: screenIndex
+          });
+        });
+      });
+    });
+    var summaryScreenIndex = SCREENS.length - 1;
+    DATA.summary.items.forEach(function(item, ii){
+      item.values.forEach(function(v, vi){
+        fields.push({
+          path: 'summary.items[' + ii + '].values[' + vi + '].n',
+          label: 'Souhrn: ' + item.badge + ' (' + v.unit + ')',
+          screenIndex: summaryScreenIndex
+        });
+      });
+    });
+    return fields;
+  }
+
+  function getByPath(root, path){
+    var tokens = tokenizePath(path);
+    var node = root;
+    for (var i = 0; i < tokens.length; i++){
+      if (node === undefined || node === null) return undefined;
+      node = node[tokens[i]];
+    }
+    return node;
+  }
+
+  var quickFields = [];
+
+  function refreshQuickSelect(){
+    quickFields = collectNumericFields();
+    var prevPath = quickSelect.value;
+    quickSelect.innerHTML = '';
+    quickFields.forEach(function(f, i){
+      var opt = document.createElement('option');
+      opt.value = f.path;
+      opt.textContent = f.label;
+      quickSelect.appendChild(opt);
+    });
+    var restore = quickFields.some(function(f){ return f.path === prevPath; });
+    quickSelect.value = restore ? prevPath : (quickFields[0] ? quickFields[0].path : '');
+    syncQuickInput();
+  }
+
+  function syncQuickInput(){
+    var f = quickFields.filter(function(x){ return x.path === quickSelect.value; })[0];
+    quickInput.value = f ? getByPath(DATA, f.path) : '';
+  }
+
+  quickToggle.addEventListener('click', function(){
+    var open = quickPanel.classList.toggle('open');
+    if (open) refreshQuickSelect();
+  });
+  quickSelect.addEventListener('change', syncQuickInput);
+
+  quickApplyBtn.addEventListener('click', function(){
+    var f = quickFields.filter(function(x){ return x.path === quickSelect.value; })[0];
+    if (!f){ setQuickStatus('Nejdřív vyber statistiku.', 'err'); return; }
+    var n = Number(quickInput.value);
+    if (!isFinite(n) || quickInput.value === ''){
+      setQuickStatus('Zadej platné číslo.', 'err');
+      return;
+    }
+    setPath(DATA, f.path, n);
+    buildScreens();
+    goTo(f.screenIndex);
+    skipToEnd();
+    setQuickStatus('Hotovo — "' + f.label + '" je teď ' + n + '.', 'ok');
+  });
+
+  // ---- QR Code Model 2 encoder (hand-written, dependency-free; verified via
+  //      independent OpenCV round-trip decode across 16 text/EC-level cases). ----
+
+  var QRMode = { MODE_NUMBER: 1 << 0, MODE_ALPHA_NUM: 1 << 1, MODE_8BIT_BYTE: 1 << 2, MODE_KANJI: 1 << 3 };
+  var QRErrorCorrectionLevel = { L: 1, M: 0, Q: 3, H: 2 };
+  var QRMaskPattern = { PATTERN000: 0, PATTERN001: 1, PATTERN010: 2, PATTERN011: 3, PATTERN100: 4, PATTERN101: 5, PATTERN110: 6, PATTERN111: 7 };
+
+  var QRUtil = (function () {
+    var PATTERN_POSITION_TABLE = [
+      [], [6, 18], [6, 22], [6, 26], [6, 30], [6, 34], [6, 22, 38], [6, 24, 42], [6, 26, 46], [6, 28, 50],
+      [6, 30, 54], [6, 32, 58], [6, 34, 62], [6, 26, 46, 66], [6, 26, 48, 70], [6, 26, 50, 74], [6, 30, 54, 78],
+      [6, 30, 56, 82], [6, 30, 58, 86], [6, 34, 62, 90], [6, 28, 50, 72, 94], [6, 26, 50, 74, 98], [6, 30, 54, 78, 102],
+      [6, 28, 54, 80, 106], [6, 32, 58, 84, 110], [6, 30, 58, 86, 114], [6, 34, 62, 90, 118], [6, 26, 50, 74, 98, 122],
+      [6, 30, 54, 78, 102, 126], [6, 26, 52, 78, 104, 130], [6, 30, 56, 82, 108, 134], [6, 34, 60, 86, 112, 138],
+      [6, 30, 58, 86, 114, 142], [6, 34, 62, 90, 118, 146], [6, 30, 54, 78, 102, 126, 150], [6, 24, 50, 76, 102, 128, 154],
+      [6, 28, 54, 80, 106, 132, 158], [6, 32, 58, 84, 110, 136, 162], [6, 26, 54, 82, 110, 138, 166], [6, 30, 58, 86, 114, 142, 170]
+    ];
+    var G15 = (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0);
+    var G18 = (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0);
+    var G15_MASK = (1 << 14) | (1 << 12) | (1 << 10) | (1 << 4) | (1 << 1);
+
+    function getBCHDigit(data) {
+      var digit = 0;
+      while (data !== 0) { digit++; data >>>= 1; }
+      return digit;
+    }
+
+    return {
+      getBCHTypeInfo: function (data) {
+        var d = data << 10;
+        while (getBCHDigit(d) - getBCHDigit(G15) >= 0) d ^= (G15 << (getBCHDigit(d) - getBCHDigit(G15)));
+        return ((data << 10) | d) ^ G15_MASK;
+      },
+      getBCHTypeNumber: function (data) {
+        var d = data << 12;
+        while (getBCHDigit(d) - getBCHDigit(G18) >= 0) d ^= (G18 << (getBCHDigit(d) - getBCHDigit(G18)));
+        return (data << 12) | d;
+      },
+      getPatternPosition: function (typeNumber) { return PATTERN_POSITION_TABLE[typeNumber - 1]; },
+      getMask: function (maskPattern, i, j) {
+        switch (maskPattern) {
+          case QRMaskPattern.PATTERN000: return (i + j) % 2 === 0;
+          case QRMaskPattern.PATTERN001: return i % 2 === 0;
+          case QRMaskPattern.PATTERN010: return j % 3 === 0;
+          case QRMaskPattern.PATTERN011: return (i + j) % 3 === 0;
+          case QRMaskPattern.PATTERN100: return (Math.floor(i / 2) + Math.floor(j / 3)) % 2 === 0;
+          case QRMaskPattern.PATTERN101: return (i * j) % 2 + (i * j) % 3 === 0;
+          case QRMaskPattern.PATTERN110: return ((i * j) % 2 + (i * j) % 3) % 2 === 0;
+          case QRMaskPattern.PATTERN111: return ((i * j) % 3 + (i + j) % 2) % 2 === 0;
+          default: throw new Error('bad maskPattern:' + maskPattern);
+        }
+      },
+      getErrorCorrectPolynomial: function (errorCorrectLength) {
+        var a = new QRPolynomial([1], 0);
+        for (var i = 0; i < errorCorrectLength; i++) a = a.multiply(new QRPolynomial([1, QRMath.gexp(i)], 0));
+        return a;
+      },
+      getLengthInBits: function (mode, type) {
+        if (type >= 1 && type < 10) {
+          switch (mode) {
+            case QRMode.MODE_NUMBER: return 10;
+            case QRMode.MODE_ALPHA_NUM: return 9;
+            case QRMode.MODE_8BIT_BYTE: return 8;
+            case QRMode.MODE_KANJI: return 8;
+            default: throw new Error('mode:' + mode);
+          }
+        } else if (type < 27) {
+          switch (mode) {
+            case QRMode.MODE_NUMBER: return 12;
+            case QRMode.MODE_ALPHA_NUM: return 11;
+            case QRMode.MODE_8BIT_BYTE: return 16;
+            case QRMode.MODE_KANJI: return 10;
+            default: throw new Error('mode:' + mode);
+          }
+        } else if (type < 41) {
+          switch (mode) {
+            case QRMode.MODE_NUMBER: return 14;
+            case QRMode.MODE_ALPHA_NUM: return 13;
+            case QRMode.MODE_8BIT_BYTE: return 16;
+            case QRMode.MODE_KANJI: return 12;
+            default: throw new Error('mode:' + mode);
+          }
+        } else throw new Error('type:' + type);
+      },
+      getLostPoint: function (qrCode) {
+        var moduleCount = qrCode.getModuleCount();
+        var lostPoint = 0;
+        for (var row = 0; row < moduleCount; row++) {
+          for (var col = 0; col < moduleCount; col++) {
+            var sameCount = 0;
+            var dark = qrCode.isDark(row, col);
+            for (var r = -1; r <= 1; r++) {
+              if (row + r < 0 || moduleCount <= row + r) continue;
+              for (var c = -1; c <= 1; c++) {
+                if (col + c < 0 || moduleCount <= col + c) continue;
+                if (r === 0 && c === 0) continue;
+                if (dark === qrCode.isDark(row + r, col + c)) sameCount++;
+              }
+            }
+            if (sameCount > 5) lostPoint += (3 + sameCount - 5);
+          }
+        }
+        for (row = 0; row < moduleCount - 1; row++) {
+          for (col = 0; col < moduleCount - 1; col++) {
+            var count = 0;
+            if (qrCode.isDark(row, col)) count++;
+            if (qrCode.isDark(row + 1, col)) count++;
+            if (qrCode.isDark(row, col + 1)) count++;
+            if (qrCode.isDark(row + 1, col + 1)) count++;
+            if (count === 0 || count === 4) lostPoint += 3;
+          }
+        }
+        for (row = 0; row < moduleCount; row++) {
+          for (col = 0; col < moduleCount - 6; col++) {
+            if (qrCode.isDark(row, col) && !qrCode.isDark(row, col + 1) && qrCode.isDark(row, col + 2) && qrCode.isDark(row, col + 3) &&
+                qrCode.isDark(row, col + 4) && !qrCode.isDark(row, col + 5) && qrCode.isDark(row, col + 6)) lostPoint += 40;
+          }
+        }
+        for (col = 0; col < moduleCount; col++) {
+          for (row = 0; row < moduleCount - 6; row++) {
+            if (qrCode.isDark(row, col) && !qrCode.isDark(row + 1, col) && qrCode.isDark(row + 2, col) && qrCode.isDark(row + 3, col) &&
+                qrCode.isDark(row + 4, col) && !qrCode.isDark(row + 5, col) && qrCode.isDark(row + 6, col)) lostPoint += 40;
+          }
+        }
+        var darkCount = 0;
+        for (col = 0; col < moduleCount; col++) for (row = 0; row < moduleCount; row++) if (qrCode.isDark(row, col)) darkCount++;
+        var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
+        lostPoint += ratio * 10;
+        return lostPoint;
+      }
+    };
+  })();
+
+  var QRMath = (function () {
+    var EXP_TABLE = new Array(256);
+    var LOG_TABLE = new Array(256);
+    for (var i = 0; i < 8; i++) EXP_TABLE[i] = 1 << i;
+    for (i = 8; i < 256; i++) EXP_TABLE[i] = EXP_TABLE[i - 4] ^ EXP_TABLE[i - 5] ^ EXP_TABLE[i - 6] ^ EXP_TABLE[i - 8];
+    for (i = 0; i < 255; i++) LOG_TABLE[EXP_TABLE[i]] = i;
+    return {
+      glog: function (n) { if (n < 1) throw new Error('glog(' + n + ')'); return LOG_TABLE[n]; },
+      gexp: function (n) { while (n < 0) n += 255; while (n >= 256) n -= 255; return EXP_TABLE[n]; }
+    };
+  })();
+
+  function QRPolynomial(num, shift) {
+    var offset = 0;
+    while (offset < num.length && num[offset] === 0) offset++;
+    this.num = new Array(num.length - offset + shift);
+    for (var i = 0; i < num.length - offset; i++) this.num[i] = num[i + offset];
+  }
+  QRPolynomial.prototype = {
+    get: function (index) { return this.num[index]; },
+    getLength: function () { return this.num.length; },
+    multiply: function (e) {
+      var num = new Array(this.getLength() + e.getLength() - 1);
+      for (var i = 0; i < this.getLength(); i++)
+        for (var j = 0; j < e.getLength(); j++)
+          num[i + j] ^= QRMath.gexp(QRMath.glog(this.get(i)) + QRMath.glog(e.get(j)));
+      return new QRPolynomial(num, 0);
+    },
+    mod: function (e) {
+      if (this.getLength() - e.getLength() < 0) return this;
+      var ratio = QRMath.glog(this.get(0)) - QRMath.glog(e.get(0));
+      var num = new Array(this.getLength());
+      for (var i = 0; i < this.getLength(); i++) num[i] = this.get(i);
+      for (i = 0; i < e.getLength(); i++) num[i] ^= QRMath.gexp(QRMath.glog(e.get(i)) + ratio);
+      return new QRPolynomial(num, 0).mod(e);
+    }
+  };
+
+  var QRRSBlock = (function () {
+    var RS_BLOCK_TABLE = [
+      [1, 26, 19], [1, 26, 16], [1, 26, 13], [1, 26, 9],
+      [1, 44, 34], [1, 44, 28], [1, 44, 22], [1, 44, 16],
+      [1, 70, 55], [1, 70, 44], [2, 35, 17], [2, 35, 13],
+      [1, 100, 80], [2, 50, 32], [2, 50, 24], [4, 25, 9],
+      [1, 134, 108], [2, 67, 43], [2, 33, 15, 2, 34, 16], [2, 33, 11, 2, 34, 12],
+      [2, 86, 68], [4, 43, 27], [4, 43, 19], [4, 43, 15],
+      [2, 98, 78], [4, 49, 31], [2, 32, 14, 4, 33, 15], [4, 39, 13, 1, 40, 14],
+      [2, 121, 97], [2, 60, 38, 2, 61, 39], [4, 40, 18, 2, 41, 19], [4, 40, 14, 2, 41, 15],
+      [2, 146, 116], [3, 58, 36, 2, 59, 37], [4, 36, 16, 4, 37, 17], [4, 36, 12, 4, 37, 13],
+      [2, 86, 68, 2, 87, 69], [4, 69, 43, 1, 70, 44], [6, 43, 19, 2, 44, 20], [6, 43, 15, 2, 44, 16],
+      [4, 101, 81], [1, 80, 50, 4, 81, 51], [4, 50, 22, 4, 51, 23], [3, 36, 12, 8, 37, 13],
+      [2, 116, 92, 2, 117, 93], [6, 58, 36, 2, 59, 37], [4, 46, 20, 6, 47, 21], [7, 42, 14, 4, 43, 15],
+      [4, 133, 107], [8, 59, 37, 1, 60, 38], [8, 44, 20, 4, 45, 21], [12, 33, 11, 4, 34, 12],
+      [3, 145, 115, 1, 146, 116], [4, 64, 40, 5, 65, 41], [11, 36, 16, 5, 37, 17], [11, 36, 12, 5, 37, 13],
+      [5, 109, 87, 1, 110, 88], [5, 65, 41, 5, 66, 42], [5, 54, 24, 7, 55, 25], [11, 36, 12, 7, 37, 13],
+      [5, 122, 98, 1, 123, 99], [7, 73, 45, 3, 74, 46], [15, 43, 19, 2, 44, 20], [3, 45, 15, 13, 46, 16],
+      [1, 135, 107, 5, 136, 108], [10, 74, 46, 1, 75, 47], [1, 50, 22, 15, 51, 23], [2, 42, 14, 17, 43, 15],
+      [5, 150, 120, 1, 151, 121], [9, 69, 43, 4, 70, 44], [17, 50, 22, 1, 51, 23], [2, 42, 14, 19, 43, 15],
+      [3, 141, 113, 4, 142, 114], [3, 70, 44, 11, 71, 45], [17, 47, 21, 4, 48, 22], [9, 39, 13, 16, 40, 14],
+      [3, 135, 107, 5, 136, 108], [3, 67, 41, 13, 68, 42], [15, 54, 24, 5, 55, 25], [15, 43, 15, 10, 44, 16],
+      [4, 144, 116, 4, 145, 117], [17, 68, 42], [17, 50, 22, 6, 51, 23], [19, 46, 16, 6, 47, 17],
+      [2, 139, 111, 7, 140, 112], [17, 74, 46], [7, 54, 24, 16, 55, 25], [34, 37, 13],
+      [4, 151, 121, 5, 152, 122], [4, 75, 47, 14, 76, 48], [11, 54, 24, 14, 55, 25], [16, 45, 15, 14, 46, 16],
+      [6, 147, 117, 4, 148, 118], [6, 73, 45, 14, 74, 46], [11, 54, 24, 16, 55, 25], [30, 46, 16, 2, 47, 17],
+      [8, 132, 106, 4, 133, 107], [8, 75, 47, 13, 76, 48], [7, 54, 24, 22, 55, 25], [22, 45, 15, 13, 46, 16],
+      [10, 142, 114, 2, 143, 115], [19, 74, 46, 4, 75, 47], [28, 50, 22, 6, 51, 23], [33, 46, 16, 4, 47, 17],
+      [8, 152, 122, 4, 153, 123], [22, 73, 45, 3, 74, 46], [8, 53, 23, 26, 54, 24], [12, 45, 15, 28, 46, 16],
+      [3, 147, 117, 10, 148, 118], [3, 73, 45, 23, 74, 46], [4, 54, 24, 31, 55, 25], [11, 45, 15, 31, 46, 16],
+      [7, 146, 116, 7, 147, 117], [21, 73, 45, 7, 74, 46], [1, 53, 23, 37, 54, 24], [19, 45, 15, 26, 46, 16],
+      [5, 145, 115, 10, 146, 116], [19, 75, 47, 10, 76, 48], [15, 54, 24, 25, 55, 25], [23, 45, 15, 25, 46, 16],
+      [13, 145, 115, 3, 146, 116], [2, 74, 46, 29, 75, 47], [42, 54, 24, 1, 55, 25], [23, 45, 15, 28, 46, 16],
+      [17, 145, 115], [10, 74, 46, 23, 75, 47], [10, 54, 24, 35, 55, 25], [19, 45, 15, 35, 46, 16],
+      [17, 145, 115, 1, 146, 116], [14, 74, 46, 21, 75, 47], [29, 54, 24, 19, 55, 25], [11, 45, 15, 46, 46, 16],
+      [13, 145, 115, 6, 146, 116], [14, 74, 46, 23, 75, 47], [44, 54, 24, 7, 55, 25], [59, 46, 16, 1, 47, 17],
+      [12, 151, 121, 7, 152, 122], [12, 75, 47, 26, 76, 48], [39, 54, 24, 14, 55, 25], [22, 45, 15, 41, 46, 16],
+      [6, 151, 121, 14, 152, 122], [6, 75, 47, 34, 76, 48], [46, 54, 24, 10, 55, 25], [2, 45, 15, 64, 46, 16],
+      [17, 152, 122, 4, 153, 123], [29, 74, 46, 14, 75, 47], [49, 54, 24, 10, 55, 25], [24, 45, 15, 46, 46, 16],
+      [4, 152, 122, 18, 153, 123], [13, 74, 46, 32, 75, 47], [48, 54, 24, 14, 55, 25], [42, 45, 15, 32, 46, 16],
+      [20, 147, 117, 4, 148, 118], [40, 75, 47, 7, 76, 48], [43, 54, 24, 22, 55, 25], [10, 45, 15, 67, 46, 16],
+      [19, 148, 118, 6, 149, 119], [18, 75, 47, 31, 76, 48], [34, 54, 24, 34, 55, 25], [20, 45, 15, 61, 46, 16]
+    ];
+    function getRsBlockTable(typeNumber, errorCorrectionLevel) {
+      switch (errorCorrectionLevel) {
+        case QRErrorCorrectionLevel.L: return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+        case QRErrorCorrectionLevel.M: return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+        case QRErrorCorrectionLevel.Q: return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+        case QRErrorCorrectionLevel.H: return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+        default: return undefined;
+      }
+    }
+    return {
+      getRSBlocks: function (typeNumber, errorCorrectionLevel) {
+        var rsBlock = getRsBlockTable(typeNumber, errorCorrectionLevel);
+        if (rsBlock === undefined) throw new Error('bad rs block @ typeNumber:' + typeNumber + '/errorCorrectionLevel:' + errorCorrectionLevel);
+        var length = rsBlock.length / 3;
+        var list = [];
+        for (var i = 0; i < length; i++) {
+          var count = rsBlock[i * 3 + 0];
+          var totalCount = rsBlock[i * 3 + 1];
+          var dataCount = rsBlock[i * 3 + 2];
+          for (var j = 0; j < count; j++) list.push({ totalCount: totalCount, dataCount: dataCount });
+        }
+        return list;
+      }
+    };
+  })();
+
+  function QRBitBuffer() { this.buffer = []; this.length = 0; }
+  QRBitBuffer.prototype = {
+    get: function (index) { var bufIndex = Math.floor(index / 8); return ((this.buffer[bufIndex] >>> (7 - index % 8)) & 1) === 1; },
+    put: function (num, length) { for (var i = 0; i < length; i++) this.putBit(((num >>> (length - i - 1)) & 1) === 1); },
+    getLengthInBits: function () { return this.length; },
+    putBit: function (bit) {
+      var bufIndex = Math.floor(this.length / 8);
+      if (this.buffer.length <= bufIndex) this.buffer.push(0);
+      if (bit) this.buffer[bufIndex] |= (0x80 >>> (this.length % 8));
+      this.length++;
+    }
+  };
+
+  function QR8bitByte(data) {
+    this.mode = QRMode.MODE_8BIT_BYTE;
+    this.data = data;
+    // UTF-8 encode
+    this.bytes = [];
+    var utf8 = unescape(encodeURIComponent(data));
+    for (var i = 0; i < utf8.length; i++) this.bytes.push(utf8.charCodeAt(i));
+  }
+  QR8bitByte.prototype = {
+    getLength: function () { return this.bytes.length; },
+    write: function (buffer) { for (var i = 0; i < this.bytes.length; i++) buffer.put(this.bytes[i], 8); }
+  };
+
+  function QRCodeModel(typeNumber, errorCorrectionLevel) {
+    this.typeNumber = typeNumber;
+    this.errorCorrectionLevel = errorCorrectionLevel;
+    this.modules = null;
+    this.moduleCount = 0;
+    this.dataCache = null;
+    this.dataList = [];
+  }
+  QRCodeModel.prototype = {
+    addData: function (data) { this.dataList.push(new QR8bitByte(data)); this.dataCache = null; },
+    isDark: function (row, col) {
+      if (row < 0 || this.moduleCount <= row || col < 0 || this.moduleCount <= col) throw new Error(row + ',' + col);
+      return this.modules[row][col];
+    },
+    getModuleCount: function () { return this.moduleCount; },
+    make: function () { this.makeImpl(false, this.getBestMaskPattern()); },
+    makeImpl: function (test, maskPattern) {
+      this.moduleCount = this.typeNumber * 4 + 17;
+      this.modules = new Array(this.moduleCount);
+      for (var row = 0; row < this.moduleCount; row++) {
+        this.modules[row] = new Array(this.moduleCount);
+        for (var col = 0; col < this.moduleCount; col++) this.modules[row][col] = null;
+      }
+      this.setupPositionProbePattern(0, 0);
+      this.setupPositionProbePattern(this.moduleCount - 7, 0);
+      this.setupPositionProbePattern(0, this.moduleCount - 7);
+      this.setupPositionAdjustPattern();
+      this.setupTimingPattern();
+      this.setupTypeInfo(test, maskPattern);
+      if (this.typeNumber >= 7) this.setupTypeNumber(test);
+      if (this.dataCache === null) this.dataCache = QRCodeModel.createData(this.typeNumber, this.errorCorrectionLevel, this.dataList);
+      this.mapData(this.dataCache, maskPattern);
+    },
+    setupPositionProbePattern: function (row, col) {
+      for (var r = -1; r <= 7; r++) {
+        if (row + r <= -1 || this.moduleCount <= row + r) continue;
+        for (var c = -1; c <= 7; c++) {
+          if (col + c <= -1 || this.moduleCount <= col + c) continue;
+          if ((0 <= r && r <= 6 && (c === 0 || c === 6)) || (0 <= c && c <= 6 && (r === 0 || r === 6)) || (2 <= r && r <= 4 && 2 <= c && c <= 4))
+            this.modules[row + r][col + c] = true;
+          else this.modules[row + r][col + c] = false;
+        }
+      }
+    },
+    getBestMaskPattern: function () {
+      var minLostPoint = 0, pattern = 0;
+      for (var i = 0; i < 8; i++) {
+        this.makeImpl(true, i);
+        var lostPoint = QRUtil.getLostPoint(this);
+        if (i === 0 || minLostPoint > lostPoint) { minLostPoint = lostPoint; pattern = i; }
+      }
+      return pattern;
+    },
+    setupTimingPattern: function () {
+      for (var r = 8; r < this.moduleCount - 8; r++) { if (this.modules[r][6] !== null) continue; this.modules[r][6] = (r % 2 === 0); }
+      for (var c = 8; c < this.moduleCount - 8; c++) { if (this.modules[6][c] !== null) continue; this.modules[6][c] = (c % 2 === 0); }
+    },
+    setupPositionAdjustPattern: function () {
+      var pos = QRUtil.getPatternPosition(this.typeNumber);
+      for (var i = 0; i < pos.length; i++) {
+        for (var j = 0; j < pos.length; j++) {
+          var row = pos[i], col = pos[j];
+          if (this.modules[row][col] !== null) continue;
+          for (var r = -2; r <= 2; r++) for (var c = -2; c <= 2; c++)
+            this.modules[row + r][col + c] = (r === -2 || r === 2 || c === -2 || c === 2 || (r === 0 && c === 0));
+        }
+      }
+    },
+    setupTypeNumber: function (test) {
+      var bits = QRUtil.getBCHTypeNumber(this.typeNumber);
+      for (var i = 0; i < 18; i++) {
+        var mod = (!test && ((bits >> i) & 1) === 1);
+        this.modules[Math.floor(i / 3)][i % 3 + this.moduleCount - 8 - 3] = mod;
+      }
+      for (i = 0; i < 18; i++) {
+        mod = (!test && ((bits >> i) & 1) === 1);
+        this.modules[i % 3 + this.moduleCount - 8 - 3][Math.floor(i / 3)] = mod;
+      }
+    },
+    setupTypeInfo: function (test, maskPattern) {
+      var data = (this.errorCorrectionLevel << 3) | maskPattern;
+      var bits = QRUtil.getBCHTypeInfo(data);
+      var i;
+      for (i = 0; i < 15; i++) {
+        var mod = (!test && ((bits >> i) & 1) === 1);
+        if (i < 6) this.modules[i][8] = mod;
+        else if (i < 8) this.modules[i + 1][8] = mod;
+        else this.modules[this.moduleCount - 15 + i][8] = mod;
+      }
+      for (i = 0; i < 15; i++) {
+        mod = (!test && ((bits >> i) & 1) === 1);
+        if (i < 8) this.modules[8][this.moduleCount - i - 1] = mod;
+        else if (i < 9) this.modules[8][15 - i - 1 + 1] = mod;
+        else this.modules[8][15 - i - 1] = mod;
+      }
+      this.modules[this.moduleCount - 8][8] = (!test);
+    },
+    mapData: function (data, maskPattern) {
+      var inc = -1, row = this.moduleCount - 1, bitIndex = 7, byteIndex = 0;
+      for (var col = this.moduleCount - 1; col > 0; col -= 2) {
+        if (col === 6) col--;
+        while (true) {
+          for (var c = 0; c < 2; c++) {
+            if (this.modules[row][col - c] === null) {
+              var dark = false;
+              if (byteIndex < data.length) dark = (((data[byteIndex] >>> bitIndex) & 1) === 1);
+              var mask = QRUtil.getMask(maskPattern, row, col - c);
+              if (mask) dark = !dark;
+              this.modules[row][col - c] = dark;
+              bitIndex--;
+              if (bitIndex === -1) { byteIndex++; bitIndex = 7; }
+            }
+          }
+          row += inc;
+          if (row < 0 || this.moduleCount <= row) { row -= inc; inc = -inc; break; }
+        }
+      }
+    }
+  };
+  QRCodeModel.PAD0 = 0xEC;
+  QRCodeModel.PAD1 = 0x11;
+  QRCodeModel.createData = function (typeNumber, errorCorrectionLevel, dataList) {
+    var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectionLevel);
+    var buffer = new QRBitBuffer();
+    for (var i = 0; i < dataList.length; i++) {
+      var data = dataList[i];
+      buffer.put(data.mode, 4);
+      buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber));
+      data.write(buffer);
+    }
+    var totalDataCount = 0;
+    for (i = 0; i < rsBlocks.length; i++) totalDataCount += rsBlocks[i].dataCount;
+    if (buffer.getLengthInBits() > totalDataCount * 8) throw new Error('code length overflow. (' + buffer.getLengthInBits() + '>' + totalDataCount * 8 + ')');
+    if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) buffer.put(0, 4);
+    while (buffer.getLengthInBits() % 8 !== 0) buffer.putBit(false);
+    while (true) {
+      if (buffer.getLengthInBits() >= totalDataCount * 8) break;
+      buffer.put(QRCodeModel.PAD0, 8);
+      if (buffer.getLengthInBits() >= totalDataCount * 8) break;
+      buffer.put(QRCodeModel.PAD1, 8);
+    }
+    return QRCodeModel.createBytes(buffer, rsBlocks);
+  };
+  QRCodeModel.createBytes = function (buffer, rsBlocks) {
+    var offset = 0, maxDcCount = 0, maxEcCount = 0;
+    var dcdata = new Array(rsBlocks.length), ecdata = new Array(rsBlocks.length);
+    for (var r = 0; r < rsBlocks.length; r++) {
+      var dcCount = rsBlocks[r].dataCount, ecCount = rsBlocks[r].totalCount - dcCount;
+      maxDcCount = Math.max(maxDcCount, dcCount);
+      maxEcCount = Math.max(maxEcCount, ecCount);
+      dcdata[r] = new Array(dcCount);
+      for (var i = 0; i < dcdata[r].length; i++) dcdata[r][i] = 0xff & buffer.buffer[i + offset];
+      offset += dcCount;
+      var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+      var rawPoly = new QRPolynomial(dcdata[r], rsPoly.getLength() - 1);
+      var modPoly = rawPoly.mod(rsPoly);
+      ecdata[r] = new Array(rsPoly.getLength() - 1);
+      for (i = 0; i < ecdata[r].length; i++) { var modIndex = i + modPoly.getLength() - ecdata[r].length; ecdata[r][i] = (modIndex >= 0) ? modPoly.get(modIndex) : 0; }
+    }
+    var totalCodeCount = 0;
+    for (i = 0; i < rsBlocks.length; i++) totalCodeCount += rsBlocks[i].totalCount;
+    var data = new Array(totalCodeCount), index = 0;
+    for (i = 0; i < maxDcCount; i++) for (r = 0; r < rsBlocks.length; r++) if (i < dcdata[r].length) data[index++] = dcdata[r][i];
+    for (i = 0; i < maxEcCount; i++) for (r = 0; r < rsBlocks.length; r++) if (i < ecdata[r].length) data[index++] = ecdata[r][i];
+    return data;
+  };
+
+  // Public API: makeQR(text, errorCorrectionLevel) -> QRCodeModel (auto-picks smallest type that fits)
+  function makeQR(text, ecLevelName) {
+    var ecLevel = QRErrorCorrectionLevel[ecLevelName || 'M'];
+    for (var typeNumber = 1; typeNumber <= 40; typeNumber++) {
+      try {
+        var qr = new QRCodeModel(typeNumber, ecLevel);
+        qr.addData(text);
+        qr.make();
+        return qr;
+      } catch (e) {
+        if (typeNumber === 40) throw e;
+        continue;
+      }
+    }
+  }
+
+
+  // ---- QR panel wiring ----
+
+  function renderQR(canvas, text){
+    if (!text) return;
+    var ec = text.length > 120 ? 'L' : 'M';
+    var qr = makeQR(text, ec);
+    var count = qr.getModuleCount();
+    var margin = 4;
+    var totalModules = count + margin * 2;
+    var size = canvas.width;
+    var scale = size / totalModules;
+    var ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, size, size);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, size, size);
+    ctx.fillStyle = '#0b0e1a';
+    for (var row = 0; row < count; row++){
+      for (var col = 0; col < count; col++){
+        if (qr.isDark(row, col)){
+          var x = (col + margin) * scale;
+          var y = (row + margin) * scale;
+          ctx.fillRect(Math.floor(x), Math.floor(y), Math.ceil(scale), Math.ceil(scale));
+        }
+      }
+    }
+  }
+
+  function refreshQR(){
+    var url = (qrUrlInput.value || '').trim();
+    if (!url){ qrCaption.textContent = 'Zadej URL.'; return; }
+    try {
+      renderQR(qrCanvas, url);
+      qrCaption.textContent = 'Naskenuj mobilem — otevře se responzivní verze.';
+    } catch (e){
+      qrCaption.textContent = 'Tuhle URL se nepodařilo zakódovat (' + e.message + ').';
+    }
+  }
+
+  qrToggle.addEventListener('click', function(){
+    var open = qrPanel.classList.toggle('open');
+    if (open){
+      if (!qrUrlInput.value) qrUrlInput.value = location.href;
+      refreshQR();
+    }
+  });
+  qrRefreshBtn.addEventListener('click', refreshQR);
+  qrUrlInput.addEventListener('keydown', function(e){
+    if (e.key === 'Enter') refreshQR();
+  });
+
+
+  var fontsReady = (window.document && document.fonts && document.fonts.ready)
+    ? document.fonts.ready
+    : Promise.resolve();
+  fontsReady.then(function(){ goTo(0); }).catch(function(){ goTo(0); });
+})();
+</script>
