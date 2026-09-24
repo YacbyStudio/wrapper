@@ -1,3 +1,7 @@
+<!DOCTYPE html>
+<html lang="cs">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>O2 Wrapped Stories</title>
 <style>
   :root{
@@ -23,6 +27,7 @@
 
   *{box-sizing:border-box;}
   body{
+    margin:0;
     background:#101636;
     color:var(--ink);
     font-family:var(--font-body);
@@ -50,6 +55,7 @@
 
   .phone{
     position:relative;
+    flex-shrink:0;
     z-index:1;
     width:min(375px, 84vw);
     aspect-ratio:375/844;
