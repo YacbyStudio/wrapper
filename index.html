@@ -26,6 +26,9 @@
   @font-face{ font-family:'On Air'; src:url('fonts/OnAir-BlackItalic.ttf') format('truetype'); font-weight:800 900; font-style:italic; font-display:swap; }
 
   *{box-sizing:border-box;}
+  html{ -webkit-tap-highlight-color:transparent; }
+  button{ -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
+  .tap-zone:focus, .close-btn:focus{ outline:none; }
   body{
     margin:0;
     background:#101636;
