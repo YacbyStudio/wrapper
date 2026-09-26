@@ -82,10 +82,9 @@
     user-select:none;
   }
 
-  /* Empty hook for a variant's background (the AE video loop below):
+  /* Hook for a variant's background (e.g. the AE video loop below):
      sits behind the overlay/content, above the plain --bg-base.
-     Varianta 0 leaves it empty, so nothing changes until Varianta 1
-     is selected. */
+     Cleared on every variant switch. */
   .bg-layer{
     position:absolute; inset:0; z-index:0;
     pointer-events:none;
@@ -1061,7 +1060,7 @@
     state.index = i;
     state.screenStart = performance.now();
     renderScreen(i);
-    switchBackground(i); // no-op under Varianta 0; see the video-background section below
+    switchBackground(i); // no-op unless Varianta 1 is active; see the video-background section below
   }
 
   function skipToEnd(){
@@ -1804,7 +1803,7 @@
   // ---------------------------------------------------------------
   // Video background (Varianta 1) — After Effects loops, per
   // claude/zadani-video-pozadi-maketa.md. Lives entirely inside
-  // #bgLayer (the hook prepared for exactly this); Varianta 0 never
+  // #bgLayer (the hook prepared for exactly this); other variants never
   // touches it. Files expected at bg/S1_intro.mp4 … bg/S5_loop.mp4.
   //
   // Mapping (one config, so it stays correct as story count changes):
@@ -1939,33 +1938,29 @@
   // ---------------------------------------------------------------
   // Variant switcher — the panel to the right of the phone (desktop
   // only; hidden under the ≤480px mobile breakpoint above). Every
-  // variant lives in this one file/URL rather than as separate
-  // files, so one link/QR always reaches all of them.
+  // variant lives in this one file/URL (/varianty), so one link/QR
+  // always reaches all of them.
   //
-  // Varianta 0 is this mockup exactly as it always was: apply() just
-  // clears #bgLayer, so nothing about the default rendering changes.
+  // Adding a variant = one more entry in VARIANTS. apply() runs after
+  // #bgLayer has been cleared, so each variant starts from the plain
+  // mockup. ?v=<id> in the URL opens that variant directly (phones
+  // have no switcher); without it the first entry is used.
+  //
   // Varianta 1 is the video background above.
   // ---------------------------------------------------------------
   var VARIANTS = [
-    {
-      id: 0,
-      label: 'Varianta 0 — aktuální (statické pozadí)',
-      apply: function(){
-        bgLayerEl.innerHTML = '';
-        bgSlots = null;
-        bgFrontIndex = 0;
-      }
-    },
     {
       id: 1,
       label: 'Varianta 1 — video pozadí (After Effects)',
       apply: function(){ switchBackground(state.index); }
     }
   ];
-  // This page opens straight into Varianta 1 (the switcher panel is hidden
-  // on mobile, so phones would otherwise never see the video background).
-  // ?v=0 in the URL opens Varianta 0 instead.
-  var initialVariant = /[?&]v=0\b/.test(location.search) ? 0 : 1;
+
+  function findVariant(id){
+    return VARIANTS.filter(function(x){ return x.id === id; })[0];
+  }
+  var urlVariant = /[?&]v=(\d+)/.exec(location.search);
+  var initialVariant = (urlVariant && findVariant(+urlVariant[1]) || VARIANTS[0]).id;
   var currentVariant = initialVariant;
 
   function renderVariantList(){
@@ -1986,11 +1981,20 @@
   }
 
   function selectVariant(id){
-    var v = VARIANTS.filter(function(x){ return x.id === id; })[0];
+    var v = findVariant(id);
     if (!v) return;
     currentVariant = id;
+    bgGen++; // cancels any in-flight crossfade of the previous variant
+    bgLayerEl.innerHTML = '';
+    bgSlots = null;
+    bgFrontIndex = 0;
     v.apply();
     renderVariantList();
+    // Keep the address bar pointing at the chosen variant so a copied
+    // link opens the same one (only when there is more than one).
+    if (VARIANTS.length > 1 && window.history && history.replaceState){
+      history.replaceState(null, '', location.pathname + '?v=' + id);
+    }
   }
 
   selectVariant(initialVariant);
