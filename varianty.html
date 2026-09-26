@@ -1944,11 +1944,18 @@
   // Adding a variant = one more entry in VARIANTS. apply() runs after
   // #bgLayer has been cleared, so each variant starts from the plain
   // mockup. ?v=<id> in the URL opens that variant directly (phones
-  // have no switcher); without it the first entry is used.
+  // have no switcher); without it DEFAULT_VARIANT is used.
   //
-  // Varianta 1 is the video background above.
+  // Varianta 0 is the mockup exactly as it always was (static
+  // background: apply() has nothing to add). Varianta 1 is the video
+  // background above.
   // ---------------------------------------------------------------
   var VARIANTS = [
+    {
+      id: 0,
+      label: 'Varianta 0 — statické pozadí',
+      apply: function(){}
+    },
     {
       id: 1,
       label: 'Varianta 1 — video pozadí (After Effects)',
@@ -1960,7 +1967,10 @@
     return VARIANTS.filter(function(x){ return x.id === id; })[0];
   }
   var urlVariant = /[?&]v=(\d+)/.exec(location.search);
-  var initialVariant = (urlVariant && findVariant(+urlVariant[1]) || VARIANTS[0]).id;
+  // Without ?v= the page opens in the newest variant (phones have no
+  // switcher, so this is what they see).
+  var DEFAULT_VARIANT = 1;
+  var initialVariant = (urlVariant && findVariant(+urlVariant[1]) || findVariant(DEFAULT_VARIANT)).id;
   var currentVariant = initialVariant;
 
   function renderVariantList(){
