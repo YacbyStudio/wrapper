@@ -1962,7 +1962,11 @@
       apply: function(){ switchBackground(state.index); }
     }
   ];
-  var currentVariant = VARIANTS[0].id;
+  // This page opens straight into Varianta 1 (the switcher panel is hidden
+  // on mobile, so phones would otherwise never see the video background).
+  // ?v=0 in the URL opens Varianta 0 instead.
+  var initialVariant = /[?&]v=0\b/.test(location.search) ? 0 : 1;
+  var currentVariant = initialVariant;
 
   function renderVariantList(){
     variantListEl.innerHTML = '';
@@ -1989,8 +1993,7 @@
     renderVariantList();
   }
 
-  renderVariantList();
-  VARIANTS[0].apply();
+  selectVariant(initialVariant);
 
 
   var fontsReady = (window.document && document.fonts && document.fonts.ready)
