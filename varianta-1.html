@@ -1817,7 +1817,8 @@
     if (i === total - 1) return 'S5';
     return BG_STORY_CYCLE[(i - 1) % BG_STORY_CYCLE.length];
   }
-  function bgSrc(sceneKey, phase){ return 'bg/' + sceneKey + '_' + phase + '.mp4'; }
+  var BG_VERSION = '2';
+  function bgSrc(sceneKey, phase){ return 'bg/' + sceneKey + '_' + phase + '.mp4?v=' + BG_VERSION; }
 
   var BG_CROSSFADE_MS = 350;
   var bgGen = 0;            // bumped every switchBackground() call — stale async work checks this and no-ops
