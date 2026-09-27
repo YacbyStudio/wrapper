@@ -110,8 +110,6 @@
 
   /* ---- Variant switcher (desktop only) ---- */
   .variant-panel{
-    width:220px;
-    flex:0 0 auto;
     margin-top:8px;
     background:#fff;
     border:1px solid #dee0ec;
@@ -374,10 +372,10 @@
 
   .no-transition, .no-transition *{ transition:none !important; }
 
-  .variant-note{
-    max-width:375px; text-align:center; font-size:13px; line-height:1.6; color:#5f6787; padding-inline:8px;
+  .phone-col{ display:flex; flex-direction:column; align-items:center; gap:28px; }
+  .credit{
+    margin:0; text-align:center; font-size:13px; font-weight:500; color:#fff;
   }
-  .variant-note b{ color:#1c2340; }
 
   /* ---- CSV / Excel data panel ---- */
   .data-toggle{
@@ -391,7 +389,12 @@
     cursor:pointer;
   }
   .data-toggle:hover{ color:#0050ff; border-color:#bcd0ff; }
-  .quick-row{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+  /* Desktop side column: variant switcher with the data/QR toggles below it. */
+  .side-col{
+    width:220px; flex:0 0 auto;
+    display:flex; flex-direction:column; gap:12px;
+  }
+  .quick-row{ display:flex; flex-direction:column; align-items:flex-start; gap:8px; }
   .quick-fields{ display:flex; flex-wrap:wrap; gap:8px; }
   .quick-fields select{
     flex:1 1 220px; min-width:0;
@@ -475,9 +478,9 @@
     .content{ top:calc(64px + max(env(safe-area-inset-top,0px), 24px)); }
     .tap-zone{ top:calc(62px + max(env(safe-area-inset-top,0px), 24px)); }
     .home-indicator{ display:none; }
-    .variant-note, .quick-row, #quickPanel, #dataPanel, #qrPanel{ display:none; }
-    .phone-row{ display:block; }
-    .variant-panel{ display:none; }
+    .credit, #quickPanel, #dataPanel, #qrPanel{ display:none; }
+    .phone-row, .phone-col{ display:block; }
+    .side-col{ display:none; }
   }
 </style>
 
@@ -485,6 +488,7 @@
   <div class="backdrop-glow"></div>
 
   <div class="phone-row">
+    <div class="phone-col">
     <div class="phone" id="phone">
       <div class="bg-layer" id="bgLayer"></div>
       <div class="overlay"></div>
@@ -506,19 +510,21 @@
       <button class="tap-zone left" id="tapLeft" aria-label="Předchozí obrazovka"></button>
       <button class="tap-zone right" id="tapRight" aria-label="Další obrazovka"></button>
     </div>
-
-    <div class="variant-panel" id="variantPanel">
-      <h3>Varianty</h3>
-      <div class="variant-list" id="variantList"></div>
+    <p class="credit">Concept by Lukáš Nádvorník</p>
     </div>
-  </div>
 
-  <p class="variant-note">Sloučená verze: datový model, obrazovky a časování podle handoffu z Claude Design (<b>O2 Wrapped Final</b>), intro fráze používají náš FLIP efekt (zvětšit uprostřed → zmenšit na místo ve větě). Klepnutím doprava animaci nejdřív doženeš do konce, dalším klepnutím jdeš na další obrazovku. Klepnutí doleva vrátí na předchozí obrazovku od začátku, × resetuje na intro.</p>
+    <div class="side-col">
+      <div class="variant-panel" id="variantPanel">
+        <h3>Varianty</h3>
+        <div class="variant-list" id="variantList"></div>
+      </div>
 
-  <div class="quick-row">
-    <button type="button" class="data-toggle" id="quickToggle">Rychlá úprava hodnoty</button>
-    <button type="button" class="data-toggle" id="dataToggle">Upravit data (CSV / Excel)</button>
-    <button type="button" class="data-toggle" id="qrToggle">Zobrazit QR kód</button>
+      <div class="quick-row">
+        <button type="button" class="data-toggle" id="quickToggle">Rychlá úprava hodnoty</button>
+        <button type="button" class="data-toggle" id="dataToggle">Upravit data (CSV / Excel)</button>
+        <button type="button" class="data-toggle" id="qrToggle">Zobrazit QR kód</button>
+      </div>
+    </div>
   </div>
 
   <div class="data-panel" id="qrPanel">
