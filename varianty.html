@@ -395,6 +395,9 @@
     display:flex; flex-direction:column; gap:12px;
   }
   .quick-row{ display:flex; flex-direction:column; align-items:flex-start; gap:8px; }
+  /* Panels open in the side column too, wider than it (overflowing to
+     the right) so the phone never shifts when one opens. */
+  .side-col .data-panel{ width:360px; }
   .quick-fields{ display:flex; flex-wrap:wrap; gap:8px; }
   .quick-fields select{
     flex:1 1 220px; min-width:0;
@@ -524,43 +527,44 @@
         <button type="button" class="data-toggle" id="dataToggle">Upravit data (CSV / Excel)</button>
         <button type="button" class="data-toggle" id="qrToggle">Zobrazit QR kód</button>
       </div>
+
+      <div class="data-panel" id="qrPanel">
+        <h3>Otevřít na telefonu</h3>
+        <p>Naskenuj QR kód mobilem — na telefonu se otevře responzivní verze bez mockup rámečku (bez falešného status baru a home indikátoru), na šířku obrazovky.</p>
+        <div class="qr-fields">
+          <input type="text" id="qrUrlInput" spellcheck="false">
+          <button type="button" id="qrRefreshBtn" class="primary">Generovat</button>
+        </div>
+        <div class="qr-canvas-wrap"><canvas id="qrCanvas" width="200" height="200"></canvas></div>
+        <div class="qr-caption" id="qrCaption"></div>
+      </div>
+
+      <div class="data-panel" id="quickPanel">
+        <h3>Rychlá úprava hodnoty</h3>
+        <p>Vyber statistiku a zadej novou hodnotu — maketa se rovnou přepne na danou obrazovku a ukáže výsledek.</p>
+        <div class="quick-fields">
+          <select id="quickSelect"></select>
+          <input type="number" id="quickInput" inputmode="numeric" min="0" step="1">
+          <button type="button" id="quickApplyBtn" class="primary">Použít</button>
+        </div>
+        <div class="status" id="quickStatus"></div>
+      </div>
+
+      <div class="data-panel" id="dataPanel">
+        <h3>Data ze souboru</h3>
+        <p>Každý řádek je jedna hodnota (cesta k poli → hodnota). Stejná tabulka se dá otevřít a upravit v Excelu / Google Sheets jako běžný CSV soubor — počet frází, storek, hodnot i položek na summary je libovolný, prostě přidej nebo uber řádky se stejným prefixem (např. <code>stories[3].…</code> pro čtvrtou story obrazovku).</p>
+        <textarea id="dataTextarea" spellcheck="false"></textarea>
+        <div class="row">
+          <button type="button" id="applyBtn" class="primary">Použít data</button>
+          <button type="button" id="downloadBtn">Stáhnout jako CSV</button>
+          <label class="file-btn">Nahrát CSV soubor<input type="file" id="uploadInput" accept=".csv,text/csv"></label>
+          <button type="button" id="resetDataBtn">Výchozí data</button>
+        </div>
+        <div class="status" id="dataStatus"></div>
+      </div>
     </div>
   </div>
 
-  <div class="data-panel" id="qrPanel">
-    <h3>Otevřít na telefonu</h3>
-    <p>Naskenuj QR kód mobilem — na telefonu se otevře responzivní verze bez mockup rámečku (bez falešného status baru a home indikátoru), na šířku obrazovky.</p>
-    <div class="qr-fields">
-      <input type="text" id="qrUrlInput" spellcheck="false">
-      <button type="button" id="qrRefreshBtn" class="primary">Generovat</button>
-    </div>
-    <div class="qr-canvas-wrap"><canvas id="qrCanvas" width="200" height="200"></canvas></div>
-    <div class="qr-caption" id="qrCaption"></div>
-  </div>
-
-  <div class="data-panel" id="quickPanel">
-    <h3>Rychlá úprava hodnoty</h3>
-    <p>Vyber statistiku a zadej novou hodnotu — maketa se rovnou přepne na danou obrazovku a ukáže výsledek.</p>
-    <div class="quick-fields">
-      <select id="quickSelect"></select>
-      <input type="number" id="quickInput" inputmode="numeric" min="0" step="1">
-      <button type="button" id="quickApplyBtn" class="primary">Použít</button>
-    </div>
-    <div class="status" id="quickStatus"></div>
-  </div>
-
-  <div class="data-panel" id="dataPanel">
-    <h3>Data ze souboru</h3>
-    <p>Každý řádek je jedna hodnota (cesta k poli → hodnota). Stejná tabulka se dá otevřít a upravit v Excelu / Google Sheets jako běžný CSV soubor — počet frází, storek, hodnot i položek na summary je libovolný, prostě přidej nebo uber řádky se stejným prefixem (např. <code>stories[3].…</code> pro čtvrtou story obrazovku).</p>
-    <textarea id="dataTextarea" spellcheck="false"></textarea>
-    <div class="row">
-      <button type="button" id="applyBtn" class="primary">Použít data</button>
-      <button type="button" id="downloadBtn">Stáhnout jako CSV</button>
-      <label class="file-btn">Nahrát CSV soubor<input type="file" id="uploadInput" accept=".csv,text/csv"></label>
-      <button type="button" id="resetDataBtn">Výchozí data</button>
-    </div>
-    <div class="status" id="dataStatus"></div>
-  </div>
 </div>
 
 <script>
