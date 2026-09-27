@@ -107,6 +107,9 @@
     transition:opacity .12s linear;
   }
   .bg-slot video.phase-on{ opacity:1; }
+  /* The loop sits above the intro and must appear in one frame (see the
+     intro → loop handoff in switchBackground()). */
+  .bg-slot video.bg-loop{ transition:none; }
 
   /* ---- Variant switcher (desktop only) ---- */
   .variant-panel{
@@ -175,6 +178,7 @@
     gap:4px;
     padding:16px 20px 0;
   }
+  .progress.is-hidden{ visibility:hidden; } /* keeps its height, so the layout below doesn't move */
   .progress .seg{
     flex:1;
     height:2px;
@@ -766,9 +770,11 @@
   // screen re-show the hint (or anything else shared) later.
   var renderGen = 0;
 
+  // The summary (last screen) has no progress bar — the "Pokračovat"
+  // button moves on from there — so segments cover every screen but it.
   function buildProgress(){
     progressEl.innerHTML = '';
-    SCREENS.forEach(function(){
+    SCREENS.slice(0, -1).forEach(function(){
       var seg = document.createElement('div');
       seg.className = 'seg';
       var fill = document.createElement('div');
@@ -779,6 +785,7 @@
   }
 
   function updateProgress(t){
+    progressEl.classList.toggle('is-hidden', state.index === SCREENS.length - 1);
     var segs = progressEl.querySelectorAll('.seg .fill');
     segs.forEach(function(fill, i){
       if (i < state.index) fill.style.width = '100%';
@@ -1857,6 +1864,7 @@
         slot.appendChild(v);
       });
       loopEl.loop = true;
+      loopEl.classList.add('bg-loop');
       bgLayerEl.appendChild(slot);
       return { el: slot, introEl: introEl, loopEl: loopEl, sceneKey: null };
     });
@@ -1911,12 +1919,31 @@
     back.loopEl.load();
     bgPendingRetry = [back.introEl];
 
+    // Intro → loop handoff without a blink: the loop (stacked above the
+    // intro) is revealed instantly, and only once it is really
+    // presenting frames; the intro keeps showing its last frame (= the
+    // loop's first frame) underneath until then, and is hidden only
+    // after the loop covers it. Never cross-fade the two: at 50/50
+    // both are half transparent and the dark base shows through.
     back.introEl.addEventListener('ended', function(){
       if (gen !== bgGen) return;
-      back.loopEl.currentTime = 0;
-      safePlay(back.loopEl);
-      back.loopEl.classList.add('phase-on');
-      back.introEl.classList.remove('phase-on');
+      var loopEl = back.loopEl, introEl = back.introEl;
+      loopEl.currentTime = 0;
+      var shown = false;
+      function reveal(){
+        if (shown || gen !== bgGen) return;
+        shown = true;
+        loopEl.classList.add('phase-on');
+        requestAnimationFrame(function(){
+          requestAnimationFrame(function(){
+            if (gen !== bgGen) return;
+            introEl.classList.remove('phase-on');
+          });
+        });
+      }
+      if (loopEl.requestVideoFrameCallback) loopEl.requestVideoFrameCallback(reveal);
+      loopEl.addEventListener('playing', function(){ requestAnimationFrame(reveal); }, { once: true });
+      safePlay(loopEl);
     }, { once: true });
 
     function beginCrossfade(){

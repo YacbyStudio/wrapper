@@ -113,6 +113,7 @@
     gap:4px;
     padding:16px 20px 0;
   }
+  .progress.is-hidden{ visibility:hidden; } /* keeps its height, so the layout below doesn't move */
   .progress .seg{
     flex:1;
     height:2px;
@@ -681,9 +682,11 @@
   // screen re-show the hint (or anything else shared) later.
   var renderGen = 0;
 
+  // The summary (last screen) has no progress bar — the "Pokračovat"
+  // button moves on from there — so segments cover every screen but it.
   function buildProgress(){
     progressEl.innerHTML = '';
-    SCREENS.forEach(function(){
+    SCREENS.slice(0, -1).forEach(function(){
       var seg = document.createElement('div');
       seg.className = 'seg';
       var fill = document.createElement('div');
@@ -694,6 +697,7 @@
   }
 
   function updateProgress(t){
+    progressEl.classList.toggle('is-hidden', state.index === SCREENS.length - 1);
     var segs = progressEl.querySelectorAll('.seg .fill');
     segs.forEach(function(fill, i){
       if (i < state.index) fill.style.width = '100%';
