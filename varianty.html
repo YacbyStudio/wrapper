@@ -1060,7 +1060,7 @@
     state.index = i;
     state.screenStart = performance.now();
     renderScreen(i);
-    switchBackground(i); // no-op unless Varianta 1 is active; see the video-background section below
+    switchBackground(i); // no-op unless a video variant is active; see the video-background section below
   }
 
   function skipToEnd(){
@@ -1801,10 +1801,11 @@
   });
 
   // ---------------------------------------------------------------
-  // Video background (Varianta 1) — After Effects loops, per
+  // Video background (Varianta 1, 2) — After Effects loops, per
   // claude/zadani-video-pozadi-maketa.md. Lives entirely inside
-  // #bgLayer (the hook prepared for exactly this); other variants never
-  // touches it. Files expected at bg/S1_intro.mp4 … bg/S5_loop.mp4.
+  // #bgLayer (the hook prepared for exactly this); variants without a
+  // bgDir never touch it. Files expected at <bgDir>S1_intro.mp4 …
+  // <bgDir>S5_loop.mp4, where bgDir comes from the active VARIANTS entry.
   //
   // Mapping (one config, so it stays correct as story count changes):
   // intro screen -> S1, summary (always last) -> S5, story screens
@@ -1817,7 +1818,11 @@
     return BG_STORY_CYCLE[(i - 1) % BG_STORY_CYCLE.length];
   }
   var BG_VERSION = '2';
-  function bgSrc(sceneKey, phase){ return 'bg/' + sceneKey + '_' + phase + '.mp4?v=' + BG_VERSION; }
+  function activeBgDir(){
+    var v = findVariant(currentVariant);
+    return (v && v.bgDir) || null;
+  }
+  function bgSrc(sceneKey, phase){ return activeBgDir() + sceneKey + '_' + phase + '.mp4?v=' + BG_VERSION; }
 
   var BG_CROSSFADE_MS = 350;
   var bgGen = 0;            // bumped every switchBackground() call — stale async work checks this and no-ops
@@ -1873,7 +1878,7 @@
   // the same screen via tap-left or × — so the background always
   // restarts from its intro clip exactly like the content does.
   function switchBackground(screenIndex){
-    if (currentVariant !== 1) return;
+    if (!activeBgDir()) return;
     buildBgSlots();
     var gen = ++bgGen;
     var total = SCREENS.length;
@@ -1947,8 +1952,8 @@
   // have no switcher); without it DEFAULT_VARIANT is used.
   //
   // Varianta 0 is the mockup exactly as it always was (static
-  // background: apply() has nothing to add). Varianta 1 is the video
-  // background above.
+  // background: apply() has nothing to add). Varianta 1 and 2 are the
+  // video background above, each with its own folder of clips (bgDir).
   // ---------------------------------------------------------------
   var VARIANTS = [
     {
@@ -1959,6 +1964,13 @@
     {
       id: 1,
       label: 'Varianta 1 — video pozadí (After Effects)',
+      bgDir: 'bg/',
+      apply: function(){ switchBackground(state.index); }
+    },
+    {
+      id: 2,
+      label: 'Varianta 2 — kostky (After Effects)',
+      bgDir: 'bg-v2/',  // "Gradient Cubes": 25 fps, intro 1.6 s, seamless 10 s loop
       apply: function(){ switchBackground(state.index); }
     }
   ];
@@ -1969,7 +1981,7 @@
   var urlVariant = /[?&]v=(\d+)/.exec(location.search);
   // Without ?v= the page opens in the newest variant (phones have no
   // switcher, so this is what they see).
-  var DEFAULT_VARIANT = 1;
+  var DEFAULT_VARIANT = 2;
   var initialVariant = (urlVariant && findVariant(+urlVariant[1]) || findVariant(DEFAULT_VARIANT)).id;
   var currentVariant = initialVariant;
 
